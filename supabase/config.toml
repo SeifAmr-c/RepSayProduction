@@ -1,0 +1,29 @@
+
+[functions.process-workout]
+enabled = true
+verify_jwt = true
+import_map = "./functions/process-workout/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/process-workout/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/process-workout/*.html" ]
+
+[functions.delete-account]
+enabled = true
+verify_jwt = false
+import_map = "./functions/delete-account/deno.json"
+entrypoint = "./functions/delete-account/index.ts"
+
+[functions.block-account]
+enabled = true
+verify_jwt = false
+import_map = "./functions/block-account/deno.json"
+entrypoint = "./functions/block-account/index.ts"
+
+[functions.gift-pro]
+enabled = true
+verify_jwt = false
+import_map = "./functions/gift-pro/deno.json"
+entrypoint = "./functions/gift-pro/index.ts"

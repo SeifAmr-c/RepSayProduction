@@ -1,0 +1,2 @@
+[functions.process-workout]
+verify_jwt = false

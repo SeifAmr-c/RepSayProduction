@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RepSay - Voice-Powered Workout Logging</title>
+  <meta name="description" content="RepSay is an AI-powered fitness app that lets you log workouts using your voice. Simply speak your exercises and let AI do the rest.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="#hero" class="nav-logo">
+        <span class="logo-icon">🎙️</span>
+        <span class="logo-text">RepSay</span>
+      </a>
+      
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      
+      <ul class="nav-menu" id="navMenu">
+        <li><a href="#about" class="nav-link">About</a></li>
+        <li><a href="#privacy" class="nav-link">Privacy</a></li>
+        <li><a href="#contact" class="nav-link">Contact</a></li>
+        <li><a href="#download" class="nav-link nav-cta">Download</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section id="hero" class="hero">
+    <div class="hero-bg"></div>
+    <div class="container">
+      <div class="hero-content animate-on-scroll">
+        <div class="hero-badge">🚀 Now Available</div>
+        <h1 class="hero-title">Log Workouts with Your <span class="text-gradient">Voice</span></h1>
+        <p class="hero-subtitle">RepSay uses AI to understand your workout descriptions and automatically logs exercises, sets, reps, and weights. Just speak and lift.</p>
+        
+        <div class="hero-buttons" id="download">
+          <a href="#" class="btn btn-primary">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+            </svg>
+            <div class="btn-text">
+              <span class="btn-label">Download on the</span>
+              <span class="btn-title">App Store</span>
+            </div>
+          </a>
+          <a href="#" class="btn btn-secondary">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z"/>
+            </svg>
+            <div class="btn-text">
+              <span class="btn-label">Get it on</span>
+              <span class="btn-title">Google Play</span>
+            </div>
+          </a>
+        </div>
+      </div>
+      
+      <div class="hero-visual animate-on-scroll">
+        <div class="phone-mockup">
+          <div class="phone-screen">
+            <div class="app-demo">
+              <div class="demo-header">
+                <span class="demo-month">January</span>
+                <span class="demo-add">+</span>
+              </div>
+              <div class="demo-greeting">Hello, Athlete</div>
+              <div class="demo-title">Latest Workouts</div>
+              <div class="demo-card">
+                <div class="demo-card-header">
+                  <span>Push Day</span>
+                  <span class="demo-date">29 Jan</span>
+                </div>
+                <div class="demo-exercise">
+                  <span>Bench Press</span>
+                  <span>4×12</span>
+                  <span class="demo-weight">80kg</span>
+                </div>
+                <div class="demo-exercise">
+                  <span>Shoulder Press</span>
+                  <span>3×10</span>
+                  <span class="demo-weight">40kg</span>
+                </div>
+              </div>
+              <div class="demo-mic">
+                <div class="mic-button">🎙️</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section id="about" class="about">
+    <div class="container">
+      <div class="section-header animate-on-scroll">
+        <span class="section-badge">About RepSay</span>
+        <h2 class="section-title">The <span class="text-gradient">Smartest</span> Way to Log Workouts</h2>
+        <p class="section-subtitle">Stop typing. Start speaking. RepSay revolutionizes how you track your fitness journey.</p>
+      </div>
+      
+      <div class="features-grid">
+        <div class="feature-card animate-on-scroll">
+          <div class="feature-icon">🎙️</div>
+          <h3>Voice Recording</h3>
+          <p>Simply describe your workout in natural language. "I did 4 sets of bench press, 12 reps at 80 kilos."</p>
+        </div>
+        
+        <div class="feature-card animate-on-scroll">
+          <div class="feature-icon">🤖</div>
+          <h3>AI-Powered</h3>
+          <p>Our advanced AI understands context, corrects mistakes, and accurately extracts all your workout data.</p>
+        </div>
+        
+        <div class="feature-card animate-on-scroll">
+          <div class="feature-icon">📊</div>
+          <h3>Auto Organization</h3>
+          <p>Workouts are automatically categorized and organized by date, muscle group, and exercise type.</p>
+        </div>
+        
+        <div class="feature-card animate-on-scroll">
+          <div class="feature-icon">☁️</div>
+          <h3>Cloud Backup</h3>
+          <p>Your data is securely synced across all your devices. Never lose your workout history again.</p>
+        </div>
+        
+        <div class="feature-card animate-on-scroll">
+          <div class="feature-icon">⚡</div>
+          <h3>Lightning Fast</h3>
+          <p>Log a complete workout in under 30 seconds. Spend more time lifting, less time typing.</p>
+        </div>
+        
+        <div class="feature-card animate-on-scroll">
+          <div class="feature-icon">📈</div>
+          <h3>Progress Tracking</h3>
+          <p>Visualize your gains with beautiful charts and analytics. See your strength journey unfold.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Privacy Policy Section -->
+  <section id="privacy" class="privacy">
+    <div class="container">
+      <div class="section-header animate-on-scroll">
+        <span class="section-badge">Legal</span>
+        <h2 class="section-title">Privacy Policy</h2>
+        <p class="section-subtitle">Last updated: January 31, 2026</p>
+      </div>
+      
+      <div class="privacy-content animate-on-scroll">
+        <div class="privacy-card">
+          <h3>1. Introduction</h3>
+          <p>Welcome to RepSay ("we," "our," or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application.</p>
+          
+          <h3>2. Information We Collect</h3>
+          <p>We collect information that you provide directly to us, including:</p>
+          <ul>
+            <li><strong>Account Information:</strong> Email address, name, and password when you create an account.</li>
+            <li><strong>Workout Data:</strong> Voice recordings, exercise names, sets, reps, weights, and workout dates that you log.</li>
+            <li><strong>Usage Data:</strong> Information about how you interact with our app, including features used and time spent.</li>
+            <li><strong>Device Information:</strong> Device type, operating system, and unique device identifiers.</li>
+          </ul>
+          
+          <h3>3. How We Use Your Information</h3>
+          <p>We use the information we collect to:</p>
+          <ul>
+            <li>Provide, maintain, and improve our services</li>
+            <li>Process and transcribe your voice recordings into workout data</li>
+            <li>Sync your workout data across your devices</li>
+            <li>Send you technical notices and support messages</li>
+            <li>Respond to your comments and questions</li>
+            <li>Analyze usage patterns to improve user experience</li>
+          </ul>
+          
+          <h3>4. Voice Recording Processing</h3>
+          <p>When you record a workout, your audio is:</p>
+          <ul>
+            <li>Temporarily uploaded to our secure servers for AI processing</li>
+            <li>Transcribed and analyzed to extract workout information</li>
+            <li>Deleted from our servers after processing (typically within 24 hours)</li>
+            <li>The extracted workout data is stored in your account</li>
+          </ul>
+          
+          <h3>5. Data Storage and Security</h3>
+          <p>We use industry-standard security measures to protect your data:</p>
+          <ul>
+            <li>All data is encrypted in transit using TLS/SSL</li>
+            <li>Data at rest is encrypted using AES-256 encryption</li>
+            <li>We use Supabase, a secure cloud database platform</li>
+            <li>Regular security audits and vulnerability assessments</li>
+          </ul>
+          
+          <h3>6. Third-Party Services</h3>
+          <p>We use the following third-party services:</p>
+          <ul>
+            <li><strong>Supabase:</strong> Database and authentication services</li>
+            <li><strong>Apple/Google:</strong> App distribution and in-app purchases</li>
+          </ul>
+          
+          <h3>7. Your Rights</h3>
+          <p>You have the right to:</p>
+          <ul>
+            <li>Access your personal data</li>
+            <li>Correct inaccurate data</li>
+            <li>Delete your account and associated data</li>
+            <li>Export your workout data</li>
+            <li>Opt out of marketing communications</li>
+          </ul>
+          
+          <h3>8. Data Retention</h3>
+          <p>We retain your personal information for as long as your account is active. If you delete your account, we will delete your data within 30 days, except where we are required to retain it for legal purposes.</p>
+          
+          <h3>9. Children's Privacy</h3>
+          <p>Our service is not intended for users under the age of 13. We do not knowingly collect personal information from children under 13.</p>
+          
+          <h3>10. Changes to This Policy</h3>
+          <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Last updated" date.</p>
+          
+          <h3>11. Contact Us</h3>
+          <p>If you have questions about this Privacy Policy, please contact us at:</p>
+          <p><strong>Email:</strong> repsayinfo@gmail.com</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section id="contact" class="contact">
+    <div class="container">
+      <div class="section-header animate-on-scroll">
+        <span class="section-badge">Get in Touch</span>
+        <h2 class="section-title">Contact <span class="text-gradient">Us</span></h2>
+        <p class="section-subtitle">Have questions, feedback, or need support? We'd love to hear from you.</p>
+      </div>
+      
+      <div class="contact-form-container">
+        <div class="contact-form-wrapper animate-on-scroll">
+          <form id="contactForm" class="contact-form">
+            <div class="form-group">
+              <label for="name">Your Name</label>
+              <input type="text" id="name" name="name" required placeholder="John Doe">
+            </div>
+            
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="email" required placeholder="john@example.com">
+            </div>
+            
+            <div class="form-group">
+              <label for="message">Message</label>
+              <textarea id="message" name="message" required placeholder="How can we help you?" rows="5"></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-submit" id="submitBtn">
+              <span class="btn-text-default">Send Message</span>
+              <span class="btn-text-loading">Sending...</span>
+              <span class="btn-text-success">Message Sent! ✓</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <span class="logo-icon">🎙️</span>
+          <span class="logo-text">RepSay</span>
+        </div>
+        <p class="footer-tagline">Voice-Powered Workout Logging</p>
+        
+        <div class="footer-links">
+          <a href="#about">About</a>
+          <a href="#privacy">Privacy Policy</a>
+          <a href="#contact">Contact</a>
+        </div>
+        
+        <p class="footer-copyright">© 2026 RepSay. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Success Modal -->
+  <div class="modal-overlay" id="successModal">
+    <div class="modal-content">
+      <div class="modal-icon">✓</div>
+      <h3 class="modal-title">Message Sent!</h3>
+      <p class="modal-message">The message has been sent. We will get back to you soon.</p>
+      <button class="btn btn-modal-ok" id="modalOkBtn">OK</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
