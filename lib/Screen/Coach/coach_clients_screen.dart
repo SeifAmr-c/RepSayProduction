@@ -584,152 +584,165 @@ class _CoachClientsScreenState extends State<CoachClientsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        toolbarHeight: 70,
-        titleSpacing: 20,
-        title: Column(
+      body: SafeArea(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Hello, $_coachName",
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: Colors.white,
-              ),
-            ),
-            const Text(
-              "Manage your athletes",
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ],
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: ElevatedButton.icon(
-              onPressed: _addClientDialog,
-              icon: const Icon(Icons.add, size: 16, color: Colors.black),
-              label: const Text(
-                "Add Client",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.volt,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: _loading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.volt),
-            )
-          : _clients.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+            // Header Row: Hello greeting on the left, Add Client on the right
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.people_outline,
-                    size: 80,
-                    color: Colors.grey.shade700,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    "No clients yet",
-                    style: TextStyle(color: Colors.grey, fontSize: 18),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    "Tap 'Add Client' to get started",
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ],
-              ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(20),
-              itemCount: _clients.length,
-              itemBuilder: (ctx, i) {
-                final client = _clients[i];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Slidable(
-                    key: Key(client['id']),
-                    endActionPane: ActionPane(
-                      motion: const DrawerMotion(),
-                      extentRatio: 0.4,
-                      children: [
-                        SlidableAction(
-                          onPressed: (_) => _editClientDialog(client, i),
-                          backgroundColor: Colors.blueAccent,
-                          foregroundColor: Colors.white,
-                          icon: Icons.edit,
-                          label: 'Edit',
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(12),
-                            bottomLeft: Radius.circular(12),
-                          ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Hello, $_coachName",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 24,
+                          color: Colors.white,
                         ),
-                        SlidableAction(
-                          onPressed: (_) => _deleteClient(client['id'], i),
-                          backgroundColor: Colors.redAccent,
-                          foregroundColor: Colors.white,
-                          icon: Icons.delete,
-                          label: 'Delete',
-                          borderRadius: const BorderRadius.only(
-                            topRight: Radius.circular(12),
-                            bottomRight: Radius.circular(12),
-                          ),
-                        ),
-                      ],
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        "Manage your athletes",
+                        style: TextStyle(fontSize: 13, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: _addClientDialog,
+                    icon: const Icon(Icons.add, size: 16, color: Colors.black),
+                    label: const Text(
+                      "Add Client",
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    child: Card(
-                      color: AppColors.surface,
-                      margin: EdgeInsets.zero,
-                      child: ListTile(
-                        title: Text(
-                          client['name'],
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        subtitle: Text(
-                          "${client['age']} Years Old",
-                          style: const TextStyle(color: Colors.grey),
-                        ),
-                        trailing: const Icon(
-                          Icons.arrow_forward_ios,
-                          color: AppColors.volt,
-                          size: 16,
-                        ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ClientDetailScreen(
-                                clientId: client['id'],
-                                clientName: client['name'],
-                              ),
-                            ),
-                          );
-                        },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.volt,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
                       ),
                     ),
                   ),
-                );
-              },
+                ],
+              ),
             ),
+
+            // Content
+            Expanded(
+              child: _loading
+                  ? const Center(
+                      child: CircularProgressIndicator(color: AppColors.volt),
+                    )
+                  : _clients.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.people_outline,
+                            size: 80,
+                            color: Colors.grey.shade700,
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            "No clients yet",
+                            style: TextStyle(color: Colors.grey, fontSize: 18),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            "Tap 'Add Client' to get started",
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: _clients.length,
+                      itemBuilder: (ctx, i) {
+                        final client = _clients[i];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Slidable(
+                            key: Key(client['id']),
+                            endActionPane: ActionPane(
+                              motion: const DrawerMotion(),
+                              extentRatio: 0.4,
+                              children: [
+                                SlidableAction(
+                                  onPressed: (_) =>
+                                      _editClientDialog(client, i),
+                                  backgroundColor: Colors.blueAccent,
+                                  foregroundColor: Colors.white,
+                                  icon: Icons.edit,
+                                  label: 'Edit',
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(12),
+                                    bottomLeft: Radius.circular(12),
+                                  ),
+                                ),
+                                SlidableAction(
+                                  onPressed: (_) =>
+                                      _deleteClient(client['id'], i),
+                                  backgroundColor: Colors.redAccent,
+                                  foregroundColor: Colors.white,
+                                  icon: Icons.delete,
+                                  label: 'Delete',
+                                  borderRadius: const BorderRadius.only(
+                                    topRight: Radius.circular(12),
+                                    bottomRight: Radius.circular(12),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            child: Card(
+                              color: AppColors.surface,
+                              margin: EdgeInsets.zero,
+                              child: ListTile(
+                                title: Text(
+                                  client['name'],
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  "${client['age']} Years Old",
+                                  style: const TextStyle(color: Colors.grey),
+                                ),
+                                trailing: const Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: AppColors.volt,
+                                  size: 16,
+                                ),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => ClientDetailScreen(
+                                        clientId: client['id'],
+                                        clientName: client['name'],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
