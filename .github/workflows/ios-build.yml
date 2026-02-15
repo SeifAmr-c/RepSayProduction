@@ -59,36 +59,29 @@ jobs:
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$PP_UUID.mobileprovision
 
           echo "PROVISIONING_PROFILE_UUID=$PP_UUID" >> $GITHUB_ENV
-          echo "KEYCHAIN_PASSWORD=$KEYCHAIN_PASSWORD" >> $GITHUB_ENV
-          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
 
-      - name: Build Flutter iOS (archive)
-        run: flutter build ios --release --no-codesign
-
-      - name: Create Xcode archive
+      - name: Build and archive iOS app
         run: |
-          cd ios
-          xcodebuild -workspace Runner.xcworkspace \
-            -scheme Runner \
-            -sdk iphoneos \
-            -configuration Release \
-            -archivePath $RUNNER_TEMP/Runner.xcarchive \
-            archive \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
-            PROVISIONING_PROFILE_SPECIFIER="RepSay AppStore" \
-            DEVELOPMENT_TEAM=9P9D4CW5RN \
-            CODE_SIGN_STYLE=Manual
+          # Build the archive (let flutter handle it, ignore export failure)
+          flutter build ipa --release --export-options-plist=ios/ExportOptions.plist || true
 
-      - name: Export IPA
+          # Verify the archive was created
+          if [ ! -d "build/ios/archive/Runner.xcarchive" ]; then
+            echo "ERROR: Archive was not created!"
+            exit 1
+          fi
+          echo "✅ Archive created successfully"
+
+      - name: Export IPA from archive
         run: |
           xcodebuild -exportArchive \
-            -archivePath $RUNNER_TEMP/Runner.xcarchive \
+            -archivePath build/ios/archive/Runner.xcarchive \
             -exportOptionsPlist ios/ExportOptions.plist \
-            -exportPath $RUNNER_TEMP/ipa \
+            -exportPath build/ios/ipa \
             -allowProvisioningUpdates
 
-          echo "=== Exported files ==="
-          ls -la $RUNNER_TEMP/ipa/
+          echo "=== Exported IPA files ==="
+          ls -la build/ios/ipa/
 
       - name: Upload to TestFlight
         env:
@@ -101,7 +94,7 @@ jobs:
           echo "$APPSTORE_P8_KEY" > ~/private_keys/AuthKey_${APPSTORE_KEY_ID}.p8
 
           # Find the IPA file
-          IPA_PATH=$(find $RUNNER_TEMP/ipa -name "*.ipa" -type f | head -1)
+          IPA_PATH=$(find build/ios/ipa -name "*.ipa" -type f | head -1)
           echo "Found IPA: $IPA_PATH"
 
           # Upload to TestFlight
