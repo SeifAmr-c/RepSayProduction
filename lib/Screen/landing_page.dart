@@ -44,15 +44,15 @@ class _LandingPageState extends State<LandingPage> {
         return;
       }
 
-      // Try to get role from profiles table first
+      // Try to get role and check profile completeness
       final data = await Supabase.instance.client
           .from('profiles')
-          .select('role')
+          .select('role, gender')
           .eq('id', user.id)
           .maybeSingle();
 
-      // If no profile exists (social sign-up didn't complete), redirect to profile completion
-      if (data == null) {
+      // If no profile exists OR profile is incomplete (missing gender), redirect to profile completion
+      if (data == null || data['gender'] == null) {
         if (mounted) _go(const CompleteProfileScreen());
         return;
       }

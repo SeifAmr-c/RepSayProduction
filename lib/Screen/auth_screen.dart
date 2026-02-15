@@ -205,22 +205,22 @@ class _AuthScreenState extends State<AuthScreen> {
         return;
       }
 
-      // Check if profile exists (returning user vs new sign-up)
+      // Check if profile exists AND has required fields filled
       final profile = await _client
           .from('profiles')
-          .select('id')
+          .select('id, gender, role')
           .eq('id', response.user!.id)
           .maybeSingle();
 
       if (mounted) {
-        if (profile == null) {
-          // New user — go to complete profile screen
+        if (profile == null || profile['gender'] == null) {
+          // New user or incomplete profile — go to complete profile screen
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (_) => const CompleteProfileScreen()),
             (route) => false,
           );
         } else {
-          // Existing user — go to main app
+          // Existing user with complete profile — go to main app
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (_) => const LandingPage()),
             (route) => false,
