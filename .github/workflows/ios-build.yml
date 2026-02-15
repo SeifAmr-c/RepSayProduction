@@ -66,6 +66,13 @@ jobs:
             --release \
             --export-options-plist=ios/ExportOptions.plist
 
+      - name: Find IPA file
+        run: |
+          echo "=== Listing build/ios directory ==="
+          find build/ios -type f -name "*.ipa" -o -name "*.xcarchive" 2>/dev/null || echo "No build/ios directory found"
+          echo "=== Listing all IPA files ==="
+          find . -name "*.ipa" -type f 2>/dev/null || echo "No IPA files found"
+
       - name: Upload to TestFlight
         env:
           APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}

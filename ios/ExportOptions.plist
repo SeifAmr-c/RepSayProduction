@@ -6,6 +6,8 @@
 	<string>app-store-connect</string>
 	<key>destination</key>
 	<string>upload</string>
+	<key>teamID</key>
+	<string>9P9D4CW5RN</string>
 	<key>signingStyle</key>
 	<string>manual</string>
 	<key>provisioningProfiles</key>
