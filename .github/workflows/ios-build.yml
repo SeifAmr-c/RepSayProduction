@@ -59,19 +59,36 @@ jobs:
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$PP_UUID.mobileprovision
 
           echo "PROVISIONING_PROFILE_UUID=$PP_UUID" >> $GITHUB_ENV
+          echo "KEYCHAIN_PASSWORD=$KEYCHAIN_PASSWORD" >> $GITHUB_ENV
+          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
 
-      - name: Build iOS app
-        run: |
-          flutter build ipa \
-            --release \
-            --export-options-plist=ios/ExportOptions.plist
+      - name: Build Flutter iOS (archive)
+        run: flutter build ios --release --no-codesign
 
-      - name: Find IPA file
+      - name: Create Xcode archive
         run: |
-          echo "=== Listing build/ios directory ==="
-          find build/ios -type f -name "*.ipa" -o -name "*.xcarchive" 2>/dev/null || echo "No build/ios directory found"
-          echo "=== Listing all IPA files ==="
-          find . -name "*.ipa" -type f 2>/dev/null || echo "No IPA files found"
+          cd ios
+          xcodebuild -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath $RUNNER_TEMP/Runner.xcarchive \
+            archive \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="RepSay AppStore" \
+            DEVELOPMENT_TEAM=9P9D4CW5RN \
+            CODE_SIGN_STYLE=Manual
+
+      - name: Export IPA
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath $RUNNER_TEMP/Runner.xcarchive \
+            -exportOptionsPlist ios/ExportOptions.plist \
+            -exportPath $RUNNER_TEMP/ipa \
+            -allowProvisioningUpdates
+
+          echo "=== Exported files ==="
+          ls -la $RUNNER_TEMP/ipa/
 
       - name: Upload to TestFlight
         env:
@@ -84,7 +101,7 @@ jobs:
           echo "$APPSTORE_P8_KEY" > ~/private_keys/AuthKey_${APPSTORE_KEY_ID}.p8
 
           # Find the IPA file
-          IPA_PATH=$(find build/ios/ipa -name "*.ipa" -type f | head -1)
+          IPA_PATH=$(find $RUNNER_TEMP/ipa -name "*.ipa" -type f | head -1)
           echo "Found IPA: $IPA_PATH"
 
           # Upload to TestFlight
