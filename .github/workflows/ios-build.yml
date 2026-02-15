@@ -63,7 +63,9 @@ jobs:
       - name: Build and archive iOS app
         run: |
           # Build the archive (let flutter handle it, ignore export failure)
-          flutter build ipa --release --export-options-plist=ios/ExportOptions.plist || true
+          flutter build ipa --release \
+            --build-number=${{ github.run_number }} \
+            --export-options-plist=ios/ExportOptions.plist || true
 
           # Verify the archive was created
           if [ ! -d "build/ios/archive/Runner.xcarchive" ]; then
