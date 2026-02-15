@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 // --- IMPORTS ---
-import 'package:flutter_test_1/Screen/landing_page.dart'; 
+import 'package:flutter_test_1/Screen/landing_page.dart';
 
 // --- GLOBAL COLORS ---
 class AppColors {
@@ -24,7 +24,8 @@ Future<void> main() async {
     debugPrint("🔌 Connecting to Supabase...");
     await Supabase.initialize(
       url: 'https://uvxuygmivrbxsuxnwjnb.supabase.co',
-      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2eHV5Z21pdnJieHN1eG53am5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxMTQyMjEsImV4cCI6MjA4NDY5MDIyMX0.771uHYP0Vrv4VJAKp0eWuCl3xOfNYRmlLXTp2Djgyz0',
+      anonKey:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2eHV5Z21pdnJieHN1eG53am5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxMTQyMjEsImV4cCI6MjA4NDY5MDIyMX0.771uHYP0Vrv4VJAKp0eWuCl3xOfNYRmlLXTp2Djgyz0',
     );
     debugPrint("✅ Supabase Connected!");
   } catch (e) {
@@ -36,7 +37,7 @@ Future<void> main() async {
     debugPrint("💰 Configuring RevenueCat...");
     await Purchases.setLogLevel(LogLevel.debug);
     PurchasesConfiguration configuration;
-    configuration = PurchasesConfiguration("test_lioXNrAZuKHicXfBaMTsNbOaNjs");
+    configuration = PurchasesConfiguration("appl_dWkXNBeNsWJzbfZvZcxAYSJlWcp");
     await Purchases.configure(configuration);
     debugPrint("✅ RevenueCat Ready!");
   } catch (e) {
