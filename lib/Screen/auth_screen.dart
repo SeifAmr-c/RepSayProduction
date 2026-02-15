@@ -304,6 +304,34 @@ class _AuthScreenState extends State<AuthScreen> {
                       setDialogState(() => isResetting = true);
 
                       try {
+                        // Check if email exists in profiles
+                        final existing = await Supabase.instance.client
+                            .from('profiles')
+                            .select('id')
+                            .eq('email', email.toLowerCase())
+                            .maybeSingle();
+
+                        if (existing == null) {
+                          setDialogState(() => isResetting = false);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text(
+                                  "No account found with this email.",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                backgroundColor: AppColors.surface,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                margin: const EdgeInsets.all(16),
+                              ),
+                            );
+                          }
+                          return;
+                        }
+
                         await Supabase.instance.client.auth
                             .resetPasswordForEmail(email);
 
