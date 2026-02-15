@@ -81,10 +81,17 @@ class _ProScreenState extends State<ProScreen> {
     if (packageToBuy == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
+          SnackBar(
+            content: const Text(
               "Subscription not available. Please try again later.",
+              style: TextStyle(color: Colors.white),
             ),
+            backgroundColor: AppColors.surface,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.all(16),
           ),
         );
       }
@@ -120,7 +127,18 @@ class _ProScreenState extends State<ProScreen> {
       if (errorCode != PurchasesErrorCode.purchaseCancelledError) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.message ?? "Purchase failed")),
+            SnackBar(
+              content: Text(
+                e.message ?? "Purchase failed",
+                style: const TextStyle(color: Colors.white),
+              ),
+              backgroundColor: AppColors.surface,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              margin: const EdgeInsets.all(16),
+            ),
           );
         }
       }
@@ -145,20 +163,56 @@ class _ProScreenState extends State<ProScreen> {
 
           Navigator.pop(context, true);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Pro access restored! 🎉")),
+            SnackBar(
+              content: const Text(
+                "Pro access restored! 🎉",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              backgroundColor: AppColors.surface,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              margin: const EdgeInsets.all(16),
+            ),
           );
         }
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("No active subscription found.")),
+            SnackBar(
+              content: const Text(
+                "No active subscription found.",
+                style: TextStyle(color: Colors.white),
+              ),
+              backgroundColor: AppColors.surface,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              margin: const EdgeInsets.all(16),
+            ),
           );
         }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Failed to restore purchases.")),
+          SnackBar(
+            content: const Text(
+              "Failed to restore purchases.",
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: AppColors.surface,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.all(16),
+          ),
         );
       }
     } finally {
