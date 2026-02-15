@@ -77,8 +77,7 @@ jobs:
           xcodebuild -exportArchive \
             -archivePath build/ios/archive/Runner.xcarchive \
             -exportOptionsPlist ios/ExportOptions.plist \
-            -exportPath build/ios/ipa \
-            -allowProvisioningUpdates
+            -exportPath build/ios/ipa
 
           echo "=== Exported IPA files ==="
           ls -la build/ios/ipa/

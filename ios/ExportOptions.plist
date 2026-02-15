@@ -3,17 +3,21 @@
 <plist version="1.0">
 <dict>
 	<key>method</key>
-	<string>app-store-connect</string>
-	<key>destination</key>
-	<string>upload</string>
+	<string>app-store</string>
 	<key>teamID</key>
 	<string>9P9D4CW5RN</string>
 	<key>signingStyle</key>
 	<string>manual</string>
+	<key>signingCertificate</key>
+	<string>Apple Distribution</string>
 	<key>provisioningProfiles</key>
 	<dict>
 		<key>com.repsay.app</key>
 		<string>RepSay AppStore</string>
 	</dict>
+	<key>uploadSymbols</key>
+	<false/>
+	<key>uploadBitcode</key>
+	<false/>
 </dict>
 </plist>
