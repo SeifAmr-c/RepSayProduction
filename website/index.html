@@ -15,6 +15,15 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <!-- Auto-redirect password recovery to reset page -->
+  <script>
+    (function() {
+      var hash = window.location.hash;
+      if (hash && hash.includes('type=recovery')) {
+        window.location.replace('reset-password.html' + hash);
+      }
+    })();
+  </script>
   <!-- Navigation -->
   <nav class="navbar">
     <div class="nav-container">
