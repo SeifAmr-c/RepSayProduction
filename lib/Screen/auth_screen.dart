@@ -246,160 +246,171 @@ class _AuthScreenState extends State<AuthScreen> {
 
   void _showForgotPasswordDialog() {
     final resetEmailCtrl = TextEditingController();
-    bool isResetting = false;
+    // States: 'idle', 'loading', 'success', 'error'
+    String dialogState = 'idle';
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: AppColors.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: const Text(
-            "Reset Password",
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                "Enter your email address and we'll send you a link to reset your password.",
-                style: TextStyle(color: Colors.grey, fontSize: 14),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: resetEmailCtrl,
-                keyboardType: TextInputType.emailAddress,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: "Email",
-                  labelStyle: const TextStyle(color: Colors.grey),
-                  filled: true,
-                  fillColor: AppColors.background,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.volt),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: AppColors.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            ElevatedButton(
-              onPressed: isResetting
-                  ? null
-                  : () async {
-                      final email = resetEmailCtrl.text.trim();
-                      if (email.isEmpty) return;
-
-                      setDialogState(() => isResetting = true);
-
-                      try {
-                        // Check if email exists in profiles
-                        final existing = await Supabase.instance.client
-                            .from('profiles')
-                            .select('id')
-                            .eq('email', email.toLowerCase())
-                            .maybeSingle();
-
-                        if (existing == null) {
-                          setDialogState(() => isResetting = false);
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: const Text(
-                                  "No account found with this email.",
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                backgroundColor: AppColors.surface,
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                margin: const EdgeInsets.all(16),
-                              ),
-                            );
-                          }
-                          return;
-                        }
-
-                        await Supabase.instance.client.auth
-                            .resetPasswordForEmail(email);
-
-                        if (ctx.mounted) Navigator.pop(ctx);
-
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: const Text(
-                                "Password reset link sent! Check your email.",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              backgroundColor: AppColors.surface,
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              margin: const EdgeInsets.all(16),
-                              duration: const Duration(seconds: 5),
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        setDialogState(() => isResetting = false);
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: const Text(
-                                "Failed to send reset email. Please try again.",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              backgroundColor: AppColors.surface,
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              margin: const EdgeInsets.all(16),
-                            ),
-                          );
-                        }
-                      }
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.volt,
-                foregroundColor: Colors.black,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+            title: Text(
+              dialogState == 'success' ? "Email Sent!" : "Reset Password",
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
               ),
-              child: isResetting
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        color: Colors.black,
-                        strokeWidth: 2,
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Loading state
+                if (dialogState == 'loading') ...[
+                  const SizedBox(height: 20),
+                  const CircularProgressIndicator(color: AppColors.volt),
+                  const SizedBox(height: 20),
+                  const Text(
+                    "Sending reset link...",
+                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                ]
+                // Success state
+                else if (dialogState == 'success') ...[
+                  const SizedBox(height: 10),
+                  const Icon(
+                    Icons.check_circle,
+                    color: AppColors.volt,
+                    size: 50,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "If an account exists with this email, a password reset link has been sent.",
+                    style: TextStyle(color: Colors.white, fontSize: 15),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Please check your inbox and spam folder.",
+                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                    textAlign: TextAlign.center,
+                  ),
+                ]
+                // Error state
+                else if (dialogState == 'error') ...[
+                  const SizedBox(height: 10),
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.orange,
+                    size: 50,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Something went wrong.\nPlease try again later.",
+                    style: TextStyle(color: Colors.orange, fontSize: 15),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                ]
+                // Idle state — show email input
+                else ...[
+                  const Text(
+                    "Enter your email address and we'll send you a link to reset your password.",
+                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: resetEmailCtrl,
+                    keyboardType: TextInputType.emailAddress,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: "Email",
+                      labelStyle: const TextStyle(color: Colors.grey),
+                      filled: true,
+                      fillColor: AppColors.background,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
                       ),
-                    )
-                  : const Text(
-                      "Send Reset Link",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.volt),
+                      ),
                     ),
+                  ),
+                ],
+              ],
             ),
-          ],
-        ),
+            actions: [
+              // Idle: Cancel + Send
+              if (dialogState == 'idle') ...[
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text(
+                    "Cancel",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final email = resetEmailCtrl.text.trim();
+                    if (email.isEmpty) return;
+
+                    // Dismiss keyboard
+                    FocusScope.of(context).unfocus();
+
+                    setDialogState(() => dialogState = 'loading');
+
+                    try {
+                      await Supabase.instance.client.auth.resetPasswordForEmail(
+                        email,
+                      );
+                      setDialogState(() => dialogState = 'success');
+                    } catch (e) {
+                      debugPrint('❌ Reset password error: $e');
+                      setDialogState(() => dialogState = 'error');
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.volt,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    "Send Reset Link",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ]
+              // Success or Error: OK button
+              else if (dialogState == 'success' || dialogState == 'error') ...[
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.volt,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    "OK",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+              // No buttons during loading
+            ],
+          );
+        },
       ),
     );
   }
