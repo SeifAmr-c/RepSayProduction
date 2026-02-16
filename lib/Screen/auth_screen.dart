@@ -259,6 +259,7 @@ class _AuthScreenState extends State<AuthScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
+            actionsAlignment: MainAxisAlignment.center,
             title: Text(
               dialogState == 'success' ? "Email Sent!" : "Reset Password",
               style: const TextStyle(
