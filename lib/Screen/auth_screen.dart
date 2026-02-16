@@ -370,6 +370,8 @@ class _AuthScreenState extends State<AuthScreen> {
                     try {
                       await Supabase.instance.client.auth.resetPasswordForEmail(
                         email,
+                        redirectTo:
+                            'https://seifamr-c.github.io/RepSay/reset-password.html',
                       );
                       setDialogState(() => dialogState = 'success');
                     } catch (e) {
