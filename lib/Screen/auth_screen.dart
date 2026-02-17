@@ -292,7 +292,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 // ── IDLE: Enter email ──
                 if (dialogState == 'idle') ...[
                   const Text(
-                    "Enter your email address and we'll send you a 6-digit code to reset your password.",
+                    "Enter your email address and we'll send you a code to reset your password.",
                     style: TextStyle(color: Colors.grey, fontSize: 14),
                   ),
                   const SizedBox(height: 16),
@@ -337,7 +337,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 // ── OTP: Enter 6-digit code ──
                 else if (dialogState == 'otp') ...[
                   Text(
-                    "We sent a 6-digit code to\n$userEmail",
+                    "We sent a code to\n$userEmail",
                     style: const TextStyle(color: Colors.grey, fontSize: 14),
                     textAlign: TextAlign.center,
                   ),
@@ -347,18 +347,18 @@ class _AuthScreenState extends State<AuthScreen> {
                     keyboardType: TextInputType.number,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 24,
-                      letterSpacing: 8,
+                      fontSize: 22,
+                      letterSpacing: 6,
                       fontWeight: FontWeight.bold,
                     ),
                     textAlign: TextAlign.center,
-                    maxLength: 6,
+                    maxLength: 8,
                     decoration: InputDecoration(
-                      hintText: "000000",
+                      hintText: "00000000",
                       hintStyle: TextStyle(
                         color: Colors.grey.withOpacity(0.3),
-                        fontSize: 24,
-                        letterSpacing: 8,
+                        fontSize: 22,
+                        letterSpacing: 6,
                       ),
                       counterText: "",
                       filled: true,
@@ -542,9 +542,10 @@ class _AuthScreenState extends State<AuthScreen> {
                 ElevatedButton(
                   onPressed: () async {
                     final code = otpCtrl.text.trim();
-                    if (code.length != 6) {
+                    if (code.length < 6) {
                       setDialogState(
-                        () => errorMessage = 'Please enter the 6-digit code.',
+                        () => errorMessage =
+                            'Please enter the code from your email.',
                       );
                       return;
                     }
