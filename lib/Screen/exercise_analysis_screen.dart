@@ -5,8 +5,7 @@ import '../main.dart';
 import 'pro_screen.dart';
 
 class ExerciseAnalysisScreen extends StatefulWidget {
-  final String userPlan;
-  const ExerciseAnalysisScreen({super.key, required this.userPlan});
+  const ExerciseAnalysisScreen({super.key});
 
   @override
   State<ExerciseAnalysisScreen> createState() => _ExerciseAnalysisScreenState();
@@ -15,6 +14,7 @@ class ExerciseAnalysisScreen extends StatefulWidget {
 class _ExerciseAnalysisScreenState extends State<ExerciseAnalysisScreen> {
   final SupabaseClient _supabase = Supabase.instance.client;
   bool _loading = true;
+  String _userPlan = 'free';
   List<MapEntry<String, int>> _exerciseFrequency = [];
   String _currentMonthName = '';
 
@@ -23,10 +23,35 @@ class _ExerciseAnalysisScreenState extends State<ExerciseAnalysisScreen> {
     super.initState();
     final now = DateTime.now();
     _currentMonthName = _monthName(now.month);
-    if (widget.userPlan == 'pro') {
-      _fetchExerciseFrequency();
-    } else {
-      _loading = false;
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      setState(() => _loading = false);
+      return;
+    }
+
+    try {
+      // Fetch user plan
+      final profile = await _supabase
+          .from('profiles')
+          .select('plan')
+          .eq('id', user.id)
+          .maybeSingle();
+
+      final plan = profile?['plan'] ?? 'free';
+      if (mounted) setState(() => _userPlan = plan);
+
+      if (plan == 'pro') {
+        await _fetchExerciseFrequency();
+      } else {
+        if (mounted) setState(() => _loading = false);
+      }
+    } catch (e) {
+      debugPrint('❌ Exercise analysis load error: $e');
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -57,7 +82,6 @@ class _ExerciseAnalysisScreenState extends State<ExerciseAnalysisScreen> {
         for (final set in sets) {
           final exerciseName = (set['exercise_name'] as String?)?.trim() ?? '';
           if (exerciseName.isNotEmpty) {
-            // Normalize: capitalize first letter of each word
             final normalized = exerciseName
                 .split(' ')
                 .map(
@@ -109,20 +133,13 @@ class _ExerciseAnalysisScreenState extends State<ExerciseAnalysisScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        foregroundColor: Colors.white,
-        title: const Text(
-          "Exercise Analysis",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        elevation: 0,
+      body: SafeArea(
+        child: _loading
+            ? _buildLoading()
+            : _userPlan != 'pro'
+            ? _buildProGate()
+            : _buildContent(),
       ),
-      body: widget.userPlan != 'pro'
-          ? _buildProGate()
-          : _loading
-          ? _buildLoading()
-          : _buildContent(),
     );
   }
 

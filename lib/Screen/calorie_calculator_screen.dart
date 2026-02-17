@@ -90,20 +90,13 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        foregroundColor: Colors.white,
-        title: const Text(
-          "Calorie Calculator",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        elevation: 0,
+      body: SafeArea(
+        child: _isCalculating
+            ? _buildLoadingView()
+            : _calculatedCalories != null
+            ? _buildResultView()
+            : _buildFormView(),
       ),
-      body: _isCalculating
-          ? _buildLoadingView()
-          : _calculatedCalories != null
-          ? _buildResultView()
-          : _buildFormView(),
     );
   }
 
@@ -473,7 +466,7 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
             width: double.infinity,
             height: 52,
             child: OutlinedButton.icon(
-              onPressed: () => Navigator.pop(context),
+              onPressed: _resetForm,
               icon: const Icon(Icons.home_outlined),
               label: const Text(
                 "Return to Home",

@@ -7,8 +7,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart'; // Imports AppColors
 import 'manual_workout_screen.dart';
 import 'pro_screen.dart';
-import 'calorie_calculator_screen.dart';
-import 'exercise_analysis_screen.dart';
 import 'auth_screen.dart';
 import '../helpers/review_helper.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
@@ -1084,47 +1082,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
 
-                    // Quick Access Buttons
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: _QuickAccessCard(
-                              icon: Icons.local_fire_department_rounded,
-                              label: "Calorie Calculator",
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        const CalorieCalculatorScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _QuickAccessCard(
-                              icon: Icons.analytics_outlined,
-                              label: "Exercise Analysis",
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => ExerciseAnalysisScreen(
-                                      userPlan: _userPlan,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
                     const Padding(
                       padding: EdgeInsets.fromLTRB(20, 5, 20, 10),
                       child: Text(
@@ -1516,50 +1473,4 @@ class _WorkoutCard extends StatelessWidget {
     'Nov',
     'Dec',
   ][m - 1];
-}
-
-// ── Quick Access Card Widget ──
-class _QuickAccessCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const _QuickAccessCard({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.volt.withOpacity(0.15)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: AppColors.volt, size: 20),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
