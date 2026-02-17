@@ -246,14 +246,33 @@ class _AuthScreenState extends State<AuthScreen> {
 
   void _showForgotPasswordDialog() {
     final resetEmailCtrl = TextEditingController();
-    // States: 'idle', 'loading', 'success', 'error'
+    final otpCtrl = TextEditingController();
+    final newPasswordCtrl = TextEditingController();
+    final confirmPasswordCtrl = TextEditingController();
+    // States: 'idle', 'sending', 'otp', 'verifying', 'new_password', 'updating', 'success', 'error'
     String dialogState = 'idle';
+    String errorMessage = '';
+    String userEmail = '';
 
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) {
+          String titleText() {
+            switch (dialogState) {
+              case 'otp':
+                return 'Enter Code';
+              case 'new_password':
+              case 'updating':
+                return 'New Password';
+              case 'success':
+                return 'Password Updated!';
+              default:
+                return 'Reset Password';
+            }
+          }
+
           return AlertDialog(
             backgroundColor: AppColors.surface,
             shape: RoundedRectangleBorder(
@@ -261,7 +280,7 @@ class _AuthScreenState extends State<AuthScreen> {
             ),
             actionsAlignment: MainAxisAlignment.center,
             title: Text(
-              dialogState == 'success' ? "Email Sent!" : "Reset Password",
+              titleText(),
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -270,59 +289,10 @@ class _AuthScreenState extends State<AuthScreen> {
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Loading state
-                if (dialogState == 'loading') ...[
-                  const SizedBox(height: 20),
-                  const CircularProgressIndicator(color: AppColors.volt),
-                  const SizedBox(height: 20),
+                // ── IDLE: Enter email ──
+                if (dialogState == 'idle') ...[
                   const Text(
-                    "Sending reset link...",
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 10),
-                ]
-                // Success state
-                else if (dialogState == 'success') ...[
-                  const SizedBox(height: 10),
-                  const Icon(
-                    Icons.check_circle,
-                    color: AppColors.volt,
-                    size: 50,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    "If an account exists with this email, a password reset link has been sent.",
-                    style: TextStyle(color: Colors.white, fontSize: 15),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    "Please check your inbox and spam folder.",
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
-                    textAlign: TextAlign.center,
-                  ),
-                ]
-                // Error state
-                else if (dialogState == 'error') ...[
-                  const SizedBox(height: 10),
-                  const Icon(
-                    Icons.warning_amber_rounded,
-                    color: Colors.orange,
-                    size: 50,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    "Something went wrong.\nPlease try again later.",
-                    style: TextStyle(color: Colors.orange, fontSize: 15),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 10),
-                ]
-                // Idle state — show email input
-                else ...[
-                  const Text(
-                    "Enter your email address and we'll send you a link to reset your password.",
+                    "Enter your email address and we'll send you a 6-digit code to reset your password.",
                     style: TextStyle(color: Colors.grey, fontSize: 14),
                   ),
                   const SizedBox(height: 16),
@@ -345,11 +315,177 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ),
                   ),
+                ]
+                // ── SENDING: Loading spinner ──
+                else if (dialogState == 'sending' ||
+                    dialogState == 'verifying' ||
+                    dialogState == 'updating') ...[
+                  const SizedBox(height: 20),
+                  const CircularProgressIndicator(color: AppColors.volt),
+                  const SizedBox(height: 20),
+                  Text(
+                    dialogState == 'sending'
+                        ? "Sending code..."
+                        : dialogState == 'verifying'
+                        ? "Verifying code..."
+                        : "Updating password...",
+                    style: const TextStyle(color: Colors.grey, fontSize: 14),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                ]
+                // ── OTP: Enter 6-digit code ──
+                else if (dialogState == 'otp') ...[
+                  Text(
+                    "We sent a 6-digit code to\n$userEmail",
+                    style: const TextStyle(color: Colors.grey, fontSize: 14),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: otpCtrl,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      letterSpacing: 8,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLength: 6,
+                    decoration: InputDecoration(
+                      hintText: "000000",
+                      hintStyle: TextStyle(
+                        color: Colors.grey.withOpacity(0.3),
+                        fontSize: 24,
+                        letterSpacing: 8,
+                      ),
+                      counterText: "",
+                      filled: true,
+                      fillColor: AppColors.background,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.volt),
+                      ),
+                    ),
+                  ),
+                  if (errorMessage.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      errorMessage,
+                      style: const TextStyle(
+                        color: Colors.redAccent,
+                        fontSize: 13,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ]
+                // ── NEW PASSWORD: Enter new password ──
+                else if (dialogState == 'new_password') ...[
+                  const Text(
+                    "Enter your new password.",
+                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: newPasswordCtrl,
+                    obscureText: true,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: "New Password",
+                      labelStyle: const TextStyle(color: Colors.grey),
+                      filled: true,
+                      fillColor: AppColors.background,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.volt),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: confirmPasswordCtrl,
+                    obscureText: true,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: "Confirm Password",
+                      labelStyle: const TextStyle(color: Colors.grey),
+                      filled: true,
+                      fillColor: AppColors.background,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.volt),
+                      ),
+                    ),
+                  ),
+                  if (errorMessage.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      errorMessage,
+                      style: const TextStyle(
+                        color: Colors.redAccent,
+                        fontSize: 13,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ]
+                // ── SUCCESS ──
+                else if (dialogState == 'success') ...[
+                  const SizedBox(height: 10),
+                  const Icon(
+                    Icons.check_circle,
+                    color: AppColors.volt,
+                    size: 50,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Your password has been updated successfully!",
+                    style: TextStyle(color: Colors.white, fontSize: 15),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "You can now log in with your new password.",
+                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                    textAlign: TextAlign.center,
+                  ),
+                ]
+                // ── ERROR ──
+                else if (dialogState == 'error') ...[
+                  const SizedBox(height: 10),
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.orange,
+                    size: 50,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    errorMessage.isNotEmpty
+                        ? errorMessage
+                        : "Something went wrong.\nPlease try again.",
+                    style: const TextStyle(color: Colors.orange, fontSize: 15),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
                 ],
               ],
             ),
             actions: [
-              // Idle: Cancel + Send
+              // ── IDLE actions ──
               if (dialogState == 'idle') ...[
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
@@ -362,22 +498,23 @@ class _AuthScreenState extends State<AuthScreen> {
                   onPressed: () async {
                     final email = resetEmailCtrl.text.trim();
                     if (email.isEmpty) return;
-
-                    // Dismiss keyboard
                     FocusScope.of(context).unfocus();
-
-                    setDialogState(() => dialogState = 'loading');
-
+                    userEmail = email;
+                    setDialogState(() {
+                      dialogState = 'sending';
+                      errorMessage = '';
+                    });
                     try {
                       await Supabase.instance.client.auth.resetPasswordForEmail(
                         email,
-                        redirectTo:
-                            'https://seifamr-c.github.io/RepSay/reset-password.html',
                       );
-                      setDialogState(() => dialogState = 'success');
+                      setDialogState(() => dialogState = 'otp');
                     } catch (e) {
-                      debugPrint('❌ Reset password error: $e');
-                      setDialogState(() => dialogState = 'error');
+                      debugPrint('❌ Reset email error: $e');
+                      setDialogState(() {
+                        dialogState = 'error';
+                        errorMessage = 'Failed to send code. Please try again.';
+                      });
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -388,12 +525,122 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                   ),
                   child: const Text(
-                    "Send Reset Link",
+                    "Send Code",
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
               ]
-              // Success or Error: OK button
+              // ── OTP actions ──
+              else if (dialogState == 'otp') ...[
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text(
+                    "Cancel",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final code = otpCtrl.text.trim();
+                    if (code.length != 6) {
+                      setDialogState(
+                        () => errorMessage = 'Please enter the 6-digit code.',
+                      );
+                      return;
+                    }
+                    FocusScope.of(context).unfocus();
+                    setDialogState(() {
+                      dialogState = 'verifying';
+                      errorMessage = '';
+                    });
+                    try {
+                      await Supabase.instance.client.auth.verifyOTP(
+                        email: userEmail,
+                        token: code,
+                        type: OtpType.recovery,
+                      );
+                      setDialogState(() => dialogState = 'new_password');
+                    } catch (e) {
+                      debugPrint('❌ OTP verify error: $e');
+                      setDialogState(() {
+                        dialogState = 'otp';
+                        errorMessage =
+                            'Invalid or expired code. Please try again.';
+                      });
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.volt,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    "Verify Code",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ]
+              // ── NEW PASSWORD actions ──
+              else if (dialogState == 'new_password') ...[
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text(
+                    "Cancel",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final newPwd = newPasswordCtrl.text;
+                    final confirmPwd = confirmPasswordCtrl.text;
+                    if (newPwd.length < 6) {
+                      setDialogState(
+                        () => errorMessage =
+                            'Password must be at least 6 characters.',
+                      );
+                      return;
+                    }
+                    if (newPwd != confirmPwd) {
+                      setDialogState(
+                        () => errorMessage = 'Passwords do not match.',
+                      );
+                      return;
+                    }
+                    FocusScope.of(context).unfocus();
+                    setDialogState(() {
+                      dialogState = 'updating';
+                      errorMessage = '';
+                    });
+                    try {
+                      await Supabase.instance.client.auth.updateUser(
+                        UserAttributes(password: newPwd),
+                      );
+                      setDialogState(() => dialogState = 'success');
+                    } catch (e) {
+                      debugPrint('❌ Password update error: $e');
+                      setDialogState(() {
+                        dialogState = 'new_password';
+                        errorMessage =
+                            'Failed to update password. Please try again.';
+                      });
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.volt,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    "Update Password",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ]
+              // ── SUCCESS / ERROR actions ──
               else if (dialogState == 'success' || dialogState == 'error') ...[
                 ElevatedButton(
                   onPressed: () => Navigator.pop(ctx),
@@ -410,7 +657,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                 ),
               ],
-              // No buttons during loading
+              // No buttons during loading states
             ],
           );
         },
