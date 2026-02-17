@@ -106,12 +106,14 @@ class _ProScreenState extends State<ProScreen> {
       // Check if the purchase was successful
       if (customerInfo.entitlements.all["pro"]?.isActive == true) {
         if (mounted) {
-          // Save "Pro" status to database as a backup
+          // Save "Pro" status and product ID to database
           final user = Supabase.instance.client.auth.currentUser;
           if (user != null) {
+            final productId =
+                customerInfo.entitlements.all["pro"]?.productIdentifier ?? '';
             await Supabase.instance.client
                 .from('profiles')
-                .update({'plan': 'pro'})
+                .update({'plan': 'pro', 'product_id': productId})
                 .eq('id', user.id);
           }
 
@@ -155,9 +157,11 @@ class _ProScreenState extends State<ProScreen> {
         if (mounted) {
           final user = Supabase.instance.client.auth.currentUser;
           if (user != null) {
+            final productId =
+                customerInfo.entitlements.all["pro"]?.productIdentifier ?? '';
             await Supabase.instance.client
                 .from('profiles')
-                .update({'plan': 'pro'})
+                .update({'plan': 'pro', 'product_id': productId})
                 .eq('id', user.id);
           }
 
