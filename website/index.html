@@ -19,8 +19,16 @@
   <script>
     (function() {
       var hash = window.location.hash;
-      if (hash && hash.includes('type=recovery')) {
+      var search = window.location.search;
+      // Implicit flow: hash contains type=recovery
+      if (hash && hash.indexOf('type=recovery') !== -1) {
         window.location.replace('reset-password.html' + hash);
+        return;
+      }
+      // PKCE flow: query contains code param (from Supabase email link)
+      if (search && search.indexOf('code=') !== -1) {
+        window.location.replace('reset-password.html' + search);
+        return;
       }
     })();
   </script>
