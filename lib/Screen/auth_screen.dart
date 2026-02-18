@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:crypto/crypto.dart';
@@ -26,6 +27,7 @@ class _AuthScreenState extends State<AuthScreen> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _fullNameCtrl = TextEditingController();
+  final _dobCtrl = TextEditingController();
 
   DateTime? _dob; // User Only
   String? _selectedGender; // Everyone (User & Coach)
@@ -666,31 +668,26 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  Future<void> _pickDob() async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime(now.year - 18),
-      firstDate: DateTime(1900),
-      lastDate: now,
-      builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: const ColorScheme.dark(
-            primary: AppColors.volt,
-            onPrimary: Colors.black,
-            surface: AppColors.surface,
-            onSurface: Colors.white,
-          ),
-          dialogBackgroundColor: AppColors.surface,
-        ),
-        child: child!,
-      ),
-    );
-    if (picked != null) {
-      setState(() {
-        _dob = picked;
-        _authError = null;
-      });
+  /// Parse DD/MM/YYYY string and validate
+  DateTime? _parseDob(String text) {
+    if (text.isEmpty) return null;
+    final parts = text.split('/');
+    if (parts.length != 3) return null;
+    final day = int.tryParse(parts[0]);
+    final month = int.tryParse(parts[1]);
+    final year = int.tryParse(parts[2]);
+    if (day == null || month == null || year == null) return null;
+    if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+    if (year < 1900 || year > DateTime.now().year) return null;
+    try {
+      final date = DateTime(year, month, day);
+      // Verify the date is valid (e.g. not Feb 30)
+      if (date.day != day || date.month != month || date.year != year)
+        return null;
+      if (date.isAfter(DateTime.now())) return null;
+      return date;
+    } catch (_) {
+      return null;
     }
   }
 
@@ -767,16 +764,16 @@ class _AuthScreenState extends State<AuthScreen> {
                   if (!_isLogin) ...[
                     const SizedBox(height: 12),
 
-                    // --- GENDER FIELD (FOR EVERYONE) ---
+                    // --- GENDER FIELD (FOR EVERYONE) — Apple style ---
                     DropdownButtonFormField<String>(
                       value: _selectedGender,
-                      dropdownColor: AppColors.surface,
-                      style: const TextStyle(color: Colors.white),
+                      dropdownColor: Colors.white,
+                      style: const TextStyle(color: Colors.black),
                       decoration: InputDecoration(
                         labelText: "Gender",
                         filled: true,
-                        fillColor: AppColors.surface,
-                        labelStyle: const TextStyle(color: Colors.grey),
+                        fillColor: Colors.white,
+                        labelStyle: const TextStyle(color: Colors.black54),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -790,11 +787,24 @@ class _AuthScreenState extends State<AuthScreen> {
                           vertical: 16,
                         ),
                       ),
+                      icon: const Icon(
+                        Icons.keyboard_arrow_down,
+                        color: Colors.black54,
+                      ),
                       items: const [
-                        DropdownMenuItem(value: "Male", child: Text("Male")),
+                        DropdownMenuItem(
+                          value: "Male",
+                          child: Text(
+                            "Male",
+                            style: TextStyle(color: Colors.black),
+                          ),
+                        ),
                         DropdownMenuItem(
                           value: "Female",
-                          child: Text("Female"),
+                          child: Text(
+                            "Female",
+                            style: TextStyle(color: Colors.black),
+                          ),
                         ),
                       ],
                       onChanged: (v) => setState(() {
@@ -804,26 +814,49 @@ class _AuthScreenState extends State<AuthScreen> {
                       validator: (v) => v == null ? "Required" : null,
                     ),
 
-                    // --- DATE OF BIRTH (USER ONLY) ---
+                    // --- DATE OF BIRTH (USER ONLY) — DD/MM/YYYY text input ---
                     if (!_isCoach) ...[
                       const SizedBox(height: 12),
-                      GestureDetector(
-                        onTap: _pickDob,
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(12),
+                      TextFormField(
+                        controller: _dobCtrl,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[\d/]')),
+                          LengthLimitingTextInputFormatter(10),
+                          _DateInputFormatter(),
+                        ],
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: "Date of Birth",
+                          hintText: "DD/MM/YYYY",
+                          filled: true,
+                          fillColor: AppColors.surface,
+                          labelStyle: const TextStyle(color: Colors.grey),
+                          hintStyle: TextStyle(
+                            color: Colors.grey.withOpacity(0.5),
                           ),
-                          child: Text(
-                            _dob == null
-                                ? "Date of Birth"
-                                : "${_dob!.day}/${_dob!.month}/${_dob!.year}",
-                            style: TextStyle(
-                              color: _dob == null ? Colors.grey : Colors.white,
-                            ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: AppColors.volt),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
                           ),
                         ),
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty)
+                            return 'Date of Birth is required';
+                          final parsed = _parseDob(v.trim());
+                          if (parsed == null)
+                            return 'Enter a valid date (DD/MM/YYYY)';
+                          _dob = parsed;
+                          return null;
+                        },
                       ),
                     ],
                   ],
@@ -1011,6 +1044,29 @@ class _AuthScreenState extends State<AuthScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Auto-formats date input as DD/MM/YYYY by inserting slashes
+class _DateInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final text = newValue.text.replaceAll('/', '');
+    final buffer = StringBuffer();
+
+    for (int i = 0; i < text.length && i < 8; i++) {
+      if (i == 2 || i == 4) buffer.write('/');
+      buffer.write(text[i]);
+    }
+
+    final formatted = buffer.toString();
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }

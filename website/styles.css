@@ -788,6 +788,8 @@ img {
     border: none;
     cursor: pointer;
     transition: var(--transition);
+    display: block;
+    margin: 0 auto;
 }
 
 .btn-modal-ok:hover {

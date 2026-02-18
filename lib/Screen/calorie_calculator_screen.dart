@@ -20,6 +20,9 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
   String _selectedGoal = 'Maintaining';
   bool _isCalculating = false;
   int? _calculatedCalories;
+  String? _idealWeight;
+  // Enable real-time validation after first submit attempt
+  AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
   @override
   void dispose() {
@@ -36,7 +39,6 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
     final height = double.parse(_heightCtrl.text.trim());
 
     // Mifflin-St Jeor (using male formula as a general baseline)
-    // BMR = 10 * weight(kg) + 6.25 * height(cm) – 5 * age – 5 (adjusted)
     double bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
 
     // Activity multiplier (moderate activity assumed)
@@ -45,20 +47,39 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
     // Goal adjustment
     switch (_selectedGoal) {
       case 'Bulking':
-        tdee += 500; // Caloric surplus
+        tdee += 500;
         break;
       case 'Cutting':
-        tdee -= 500; // Caloric deficit
+        tdee -= 500;
         break;
       case 'Maintaining':
       default:
-        break; // No change
+        break;
     }
 
     return tdee.round();
   }
 
+  /// Ideal body weight based on height using the Devine formula
+  String _calculateIdealWeight() {
+    final height = double.parse(_heightCtrl.text.trim());
+
+    // Devine formula (for males as baseline)
+    // IBW (kg) = 50 + 2.3 × (height_in_inches − 60)
+    final heightInInches = height / 2.54;
+    final idealKg = 50 + 2.3 * (heightInInches - 60);
+
+    // Provide a range (±5 kg)
+    final low = (idealKg - 5).round();
+    final high = (idealKg + 5).round();
+
+    return "$low – $high kg";
+  }
+
   Future<void> _onSubmit() async {
+    // Enable real-time validation going forward
+    setState(() => _autovalidateMode = AutovalidateMode.onUserInteraction);
+
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isCalculating = true);
@@ -67,10 +88,12 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
     await Future.delayed(const Duration(milliseconds: 1500));
 
     final calories = _calculateCalories();
+    final idealWt = _calculateIdealWeight();
 
     if (mounted) {
       setState(() {
         _calculatedCalories = calories;
+        _idealWeight = idealWt;
         _isCalculating = false;
       });
     }
@@ -83,6 +106,8 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
     setState(() {
       _selectedGoal = 'Maintaining';
       _calculatedCalories = null;
+      _idealWeight = null;
+      _autovalidateMode = AutovalidateMode.disabled;
     });
   }
 
@@ -139,6 +164,7 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
       padding: const EdgeInsets.all(24),
       child: Form(
         key: _formKey,
+        autovalidateMode: _autovalidateMode,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -218,7 +244,7 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
               controller: _weightCtrl,
               hint: "e.g. 75",
               suffix: "kg",
-              allowDecimal: true,
+              maxLength: 3,
               validator: (v) {
                 if (v == null || v.trim().isEmpty) {
                   return 'Please enter your weight';
@@ -239,6 +265,7 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
               controller: _heightCtrl,
               hint: "e.g. 175",
               suffix: "cm",
+              maxLength: 3,
               validator: (v) {
                 if (v == null || v.trim().isEmpty) {
                   return 'Please enter your height';
@@ -252,25 +279,27 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Goal dropdown
+            // Goal dropdown — Apple style (white bg, black text)
             _buildLabel("Goal"),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withOpacity(0.3)),
               ),
               child: DropdownButtonFormField<String>(
                 value: _selectedGoal,
-                dropdownColor: AppColors.surface,
-                style: const TextStyle(color: Colors.white, fontSize: 16),
+                dropdownColor: Colors.white,
+                style: const TextStyle(color: Colors.black, fontSize: 16),
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
                 ),
-                icon: Icon(Icons.keyboard_arrow_down, color: AppColors.volt),
+                icon: const Icon(
+                  Icons.keyboard_arrow_down,
+                  color: Colors.black54,
+                ),
                 items: ['Bulking', 'Maintaining', 'Cutting']
                     .map(
                       (goal) => DropdownMenuItem(
@@ -283,11 +312,14 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
                                   : goal == 'Cutting'
                                   ? Icons.trending_down
                                   : Icons.trending_flat,
-                              color: AppColors.volt,
+                              color: Colors.black54,
                               size: 20,
                             ),
                             const SizedBox(width: 12),
-                            Text(goal),
+                            Text(
+                              goal,
+                              style: const TextStyle(color: Colors.black),
+                            ),
                           ],
                         ),
                       ),
@@ -334,7 +366,7 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
         children: [
           const SizedBox(height: 20),
 
-          // Result card
+          // Calorie result card
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(32),
@@ -409,7 +441,70 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
+
+          // Ideal weight card
+          if (_idealWeight != null)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.blueAccent.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.blueAccent.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.monitor_weight_outlined,
+                      color: Colors.blueAccent,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Ideal Weight Range",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Your ideal weight based on your height is $_idealWeight",
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 13,
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          "Based on the Devine formula",
+                          style: TextStyle(
+                            color: Colors.blueAccent,
+                            fontSize: 11,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 16),
 
           // Disclaimer
           Container(

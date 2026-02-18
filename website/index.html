@@ -74,15 +74,6 @@
               <span class="btn-title">App Store</span>
             </div>
           </a>
-          <a href="#" class="btn btn-secondary">
-            <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z"/>
-            </svg>
-            <div class="btn-text">
-              <span class="btn-label">Get it on</span>
-              <span class="btn-title">Google Play</span>
-            </div>
-          </a>
         </div>
       </div>
       
@@ -177,7 +168,7 @@
       <div class="section-header animate-on-scroll">
         <span class="section-badge">Legal</span>
         <h2 class="section-title">Privacy Policy</h2>
-        <p class="section-subtitle">Last updated: January 31, 2026</p>
+        <p class="section-subtitle">Last updated: February 18, 2026</p>
       </div>
       
       <div class="privacy-content animate-on-scroll">
@@ -188,9 +179,12 @@
           <h3>2. Information We Collect</h3>
           <p>We collect information that you provide directly to us, including:</p>
           <ul>
-            <li><strong>Account Information:</strong> Email address, name, and password when you create an account.</li>
+            <li><strong>Account Information:</strong> Email address, name, and password when you create an account. If you sign in with Apple, we receive your Apple ID-associated email and name.</li>
+            <li><strong>Profile Information:</strong> Gender, date of birth, and role (athlete or coach) provided during account setup.</li>
             <li><strong>Workout Data:</strong> Voice recordings, exercise names, sets, reps, weights, and workout dates that you log.</li>
-            <li><strong>Usage Data:</strong> Information about how you interact with our app, including features used and time spent.</li>
+            <li><strong>Calorie Calculator Inputs:</strong> Age, weight, height, and fitness goals entered into the calorie calculator. This data is processed locally on your device and is <strong>not</strong> stored in our database.</li>
+            <li><strong>Usage Data:</strong> Information about how you interact with our app, including features used, exercise frequency analytics, and time spent.</li>
+            <li><strong>Subscription Information:</strong> Subscription plan status, product identifiers, and purchase history managed through Apple's App Store and RevenueCat.</li>
             <li><strong>Device Information:</strong> Device type, operating system, and unique device identifiers.</li>
           </ul>
           
@@ -200,6 +194,8 @@
             <li>Provide, maintain, and improve our services</li>
             <li>Process and transcribe your voice recordings into workout data</li>
             <li>Sync your workout data across your devices</li>
+            <li>Provide exercise frequency analysis and calorie estimation tools</li>
+            <li>Manage your subscription status and Pro feature access</li>
             <li>Send you technical notices and support messages</li>
             <li>Respond to your comments and questions</li>
             <li>Analyze usage patterns to improve user experience</li>
@@ -219,18 +215,23 @@
           <ul>
             <li>All data is encrypted in transit using TLS/SSL</li>
             <li>Data at rest is encrypted using AES-256 encryption</li>
-            <li>We use Supabase, a secure cloud database platform</li>
+            <li>We use Supabase, a secure cloud database platform with Row Level Security</li>
+            <li>Authentication is handled securely via Supabase Auth with support for email/password and Apple Sign-In</li>
             <li>Regular security audits and vulnerability assessments</li>
           </ul>
           
           <h3>6. Third-Party Services</h3>
           <p>We use the following third-party services:</p>
           <ul>
-            <li><strong>Supabase:</strong> Database and authentication services</li>
-            <li><strong>Apple/Google:</strong> App distribution and in-app purchases</li>
+            <li><strong>Supabase:</strong> Database, authentication, and serverless functions</li>
+            <li><strong>Apple:</strong> App distribution, Sign in with Apple, and in-app purchases</li>
+            <li><strong>RevenueCat:</strong> Subscription management and purchase verification</li>
           </ul>
           
-          <h3>7. Your Rights</h3>
+          <h3>7. In-App Purchases and Subscriptions</h3>
+          <p>RepSay offers a Pro subscription managed through Apple's App Store. Your payment information is handled entirely by Apple and is never stored on our servers. We receive only subscription status and product identifiers to manage your access to Pro features.</p>
+          
+          <h3>8. Your Rights</h3>
           <p>You have the right to:</p>
           <ul>
             <li>Access your personal data</li>
@@ -240,16 +241,16 @@
             <li>Opt out of marketing communications</li>
           </ul>
           
-          <h3>8. Data Retention</h3>
+          <h3>9. Data Retention</h3>
           <p>We retain your personal information for as long as your account is active. If you delete your account, we will delete your data within 30 days, except where we are required to retain it for legal purposes.</p>
           
-          <h3>9. Children's Privacy</h3>
+          <h3>10. Children's Privacy</h3>
           <p>Our service is not intended for users under the age of 13. We do not knowingly collect personal information from children under 13.</p>
           
-          <h3>10. Changes to This Policy</h3>
+          <h3>11. Changes to This Policy</h3>
           <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Last updated" date.</p>
           
-          <h3>11. Contact Us</h3>
+          <h3>12. Contact Us</h3>
           <p>If you have questions about this Privacy Policy, please contact us at:</p>
           <p><strong>Email:</strong> repsayinfo@gmail.com</p>
         </div>
