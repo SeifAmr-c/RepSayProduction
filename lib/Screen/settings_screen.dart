@@ -409,21 +409,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Icons.lock_outline,
             "Privacy Policy",
             "",
-            onTap: () =>
-                _openUrl("https://seifamr-c.github.io/RepSay/#privacy"),
+            onTap: () => _openUrl("https://repsayyy.vercel.app/#privacy"),
           ),
           _buildTile(
             Icons.info_outline,
             "About Us",
             "",
-            onTap: () => _openUrl("https://seifamr-c.github.io/RepSay/#about"),
+            onTap: () => _openUrl("https://repsayyy.vercel.app/#about"),
           ),
           _buildTile(
             Icons.mail_outline,
             "Contact Us",
             "",
-            onTap: () =>
-                _openUrl("https://seifamr-c.github.io/RepSay/#contact"),
+            onTap: () => _openUrl("https://repsayyy.vercel.app/#contact"),
           ),
 
           _buildSection("Actions"),
