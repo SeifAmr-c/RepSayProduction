@@ -6,7 +6,14 @@ import 'package:flutter_test_1/Screen/settings_screen.dart';
 import '../main.dart'; // Import to access AppColors
 
 class MainLayout extends StatefulWidget {
-  const MainLayout({super.key});
+  MainLayout() : super(key: mainLayoutKey);
+
+  static final GlobalKey<_MainLayoutState> mainLayoutKey =
+      GlobalKey<_MainLayoutState>();
+
+  static void navigateToTab(int index) {
+    mainLayoutKey.currentState?._switchTab(index);
+  }
 
   @override
   State<MainLayout> createState() => _MainLayoutState();
@@ -14,6 +21,10 @@ class MainLayout extends StatefulWidget {
 
 class _MainLayoutState extends State<MainLayout> {
   int _currentIndex = 0; // Start at Home/Main
+
+  void _switchTab(int index) {
+    setState(() => _currentIndex = index);
+  }
 
   final List<Widget> _screens = [
     const HomeScreen(), // Index 0: Record

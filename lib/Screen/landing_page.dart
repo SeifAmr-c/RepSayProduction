@@ -73,13 +73,13 @@ class _LandingPageState extends State<LandingPage> {
           _go(const CoachLayout());
         } else {
           debugPrint('👤 Navigating to User Layout');
-          _go(const MainLayout());
+          _go(MainLayout());
         }
       }
     } catch (e) {
       debugPrint('❌ Redirect error: $e');
       // Default to User Dashboard on error
-      if (mounted) _go(const MainLayout());
+      if (mounted) _go(MainLayout());
     }
   }
 

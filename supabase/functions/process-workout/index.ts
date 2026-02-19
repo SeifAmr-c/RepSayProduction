@@ -77,7 +77,7 @@ serve(async (req) => {
 
     // 4. Call GPT-4o-mini to translate and extract exercises
     const gptPrompt = `
-You are a fitness assistant. The following is a transcription of someone describing their workout in Egyptian Arabic.
+You are an expert fitness assistant that specializes in understanding Egyptian Arabic gym terminology. The following is a transcription of someone describing their workout.
 
 TRANSCRIPTION:
 ${transcription}
@@ -88,36 +88,82 @@ TASK:
 3. If it IS about gym/fitness:
    - Translate the content to English
    - Extract all exercises mentioned with their sets, reps, and weights
-   - Determine a smart workout name based on the muscle groups and exercises
+   - Determine a smart workout name based on the PRIMARY muscle groups
 
-WORKOUT NAMING RULES (VERY IMPORTANT):
-1. "Strength & Conditioning" - ONLY use this name if the workout contains ANY of these specific exercises:
-   Squat, Deadlift, Clean, Press, Sprint, Jump, Carry, Farmer's Walk, Farmer's Carry, Sled Push, Sled Pull, Tire Flips, Sandbag Carries, Turkish Get-Up, Power Clean, Hang Clean, Clean & Jerk, Snatch, Push Jerk, Box Jumps, Broad Jumps, Med Ball Slams, Kettlebell Swings, Sprints, Rowing, Assault Bike, Air Bike, Jump Rope, Burpees, Mountain Climbers, Battle Ropes, High Knees, Shuttle Runs
+═══════════════════════════════════════
+CRITICAL: EXERCISE NAME DISAMBIGUATION
+═══════════════════════════════════════
+These exercises are commonly confused in Arabic speech recognition. Pay VERY careful attention:
 
-2. "Push Day" - If the workout targets Chest + Shoulders + Triceps (or any combination of these)
+• "لاتيرال رايز" / "lateral raise" / "رفع جانبي" → "Lateral Raises" (SHOULDERS - side delt raise with dumbbells)
+  ⚠️ This is NOT "Lat Pulldown". These are completely different exercises.
 
-3. "Pull Day" - If the workout targets Back + Biceps (or any combination of these)
+• "لات بول داون" / "lat pull down" / "سحب" → "Lat Pulldown" (BACK - pulling a bar down to chest)
+  ⚠️ This is NOT "Lateral Raises". This is a back exercise.
 
-4. "Leg Day" - If the workout primarily targets Legs (Quads, Hamstrings, Glutes, Calves)
+• "بوش" / "push" / "بوش اب" → Could mean "Push-ups" or refer to "Push Day" workout
+• "بنش" / "bench" → "Bench Press" (CHEST)
+• "فلاي" / "fly" → "Chest Flyes" (CHEST)
+• "كيبل فلاي" → "Cable Flyes" (CHEST)
+• "تراي" / "ترايسبس" → "Triceps" exercises
+• "باي" / "بايسبس" → "Biceps" exercises  
+• "ديد ليفت" / "ديدليفت" → "Deadlift" (BACK/LEGS)
+• "سكوات" → "Squats" (LEGS)
+• "ليج برس" → "Leg Press" (LEGS)
+• "شولدر برس" → "Shoulder Press" (SHOULDERS)
+• "كتف" → Shoulders exercises
+• "ضهر" → Back exercises
+• "صدر" → Chest exercises
+• "رجل" → Leg exercises
 
-5. "Chest & Triceps" - If only chest and triceps exercises
+═══════════════════════════════════════
+EXERCISE → MUSCLE GROUP MAPPING
+═══════════════════════════════════════
+CHEST: Bench Press, Incline Bench Press, Decline Bench Press, Chest Flyes, Cable Flyes, Dumbbell Flyes, Chest Press, Pec Deck, Push-ups, Dips (if chest-focused)
+SHOULDERS: Lateral Raises, Front Raises, Rear Delt Flyes, Shoulder Press, Military Press, Arnold Press, Upright Rows, Face Pulls, Shrugs
+TRICEPS: Tricep Extensions, Tricep Pushdowns, Skull Crushers, Overhead Tricep Extensions, Close-Grip Bench Press, Dips (if tricep-focused), Tricep Kickbacks
+BACK: Lat Pulldown, Seated Rows, Bent-Over Rows, T-Bar Rows, Pull-ups, Cable Rows, Deadlift, Back Extensions
+BICEPS: Bicep Curls, Hammer Curls, Preacher Curls, Concentration Curls, Cable Curls, Incline Curls
+LEGS: Squats, Leg Press, Leg Extensions, Leg Curls, Lunges, Romanian Deadlift, Calf Raises, Hip Thrusts, Bulgarian Split Squats
 
-6. "Back & Biceps" - If only back and biceps exercises
+═══════════════════════════════════════
+WORKOUT NAMING RULES (STRICT PRIORITY ORDER)
+═══════════════════════════════════════
+Apply these rules IN ORDER. Use the FIRST rule that matches:
 
-7. "Shoulders" - If only shoulder exercises
+1. "Strength & Conditioning" — ONLY if workout contains explosive/compound movements like: Clean, Snatch, Clean & Jerk, Power Clean, Turkish Get-Up, Kettlebell Swings, Box Jumps, Battle Ropes, Sled Push/Pull, Tire Flips, Burpees, Sprints
 
-8. "Arms" - If only biceps and triceps (no chest or back)
+2. "Push Day" — If exercises target 2+ of these muscle groups: Chest, Shoulders, Triceps
+   Example: Bench Press + Lateral Raises + Tricep Pushdowns = "Push Day"
+   Example: Bench Press + Shoulder Press + Skull Crushers = "Push Day"
 
-9. "Full Body" - If multiple unrelated muscle groups are trained
+3. "Pull Day" — If exercises target 2+ of these muscle groups: Back, Biceps
+   Example: Lat Pulldown + Barbell Rows + Bicep Curls = "Pull Day"
 
-10. Single muscle name (e.g., "Chest", "Back", "Legs") - If only one muscle group is targeted
+4. "Leg Day" — If the workout primarily targets Legs
 
-EXERCISE RULES:
+5. "Chest & Triceps" — If ONLY chest and triceps exercises (no shoulders)
+6. "Back & Biceps" — If ONLY back and biceps exercises
+7. "Shoulders" — If ONLY shoulder exercises
+8. "Arms" — If ONLY biceps and triceps (no chest or back)
+9. "Full Body" — If multiple unrelated muscle groups
+
+10. Single muscle name (e.g., "Chest", "Back") — If ONLY one muscle group
+
+⚠️ IMPORTANT: The SAME set of exercises must ALWAYS produce the SAME workout name.
+If someone says "push, tricep, and lateral raises" → muscles are Chest + Triceps + Shoulders → "Push Day"
+If someone says the exact same exercises but differently worded → STILL "Push Day"
+
+═══════════════════════════════════════
+EXERCISE EXTRACTION RULES
+═══════════════════════════════════════
 - If weight is not mentioned, use 0
-- If sets/reps are not mentioned, estimate based on context or use reasonable defaults (3 sets, 10 reps)
-- Exercise names should be in proper English (e.g., "Bench Press", "Squats", "Deadlifts", "Tricep Extensions", "Lat Pulldowns")
+- If sets/reps are not mentioned, use defaults: 3 sets, 10 reps
+- Exercise names MUST be proper English names (e.g., "Bench Press" not "بنش")
+- Each exercise must be a REAL, specific exercise — not a body part name
+- Never output duplicate exercises
 
-Return ONLY valid JSON in one of these formats (no markdown, no explanation):
+Return ONLY valid JSON (no markdown, no explanation):
 
 For gym-related content:
 {
@@ -142,7 +188,7 @@ For non-gym content:
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: "You are a fitness assistant that extracts workout data from Arabic transcriptions. Always respond with valid JSON only." },
+          { role: "system", content: "You are an expert fitness assistant that extracts workout data from Egyptian Arabic transcriptions. You must correctly distinguish between similar-sounding exercises (e.g., 'lateral raises' are a SHOULDER exercise, NOT 'lat pulldown' which is a BACK exercise). Always respond with valid JSON only. Never output duplicate exercises. Always use proper English exercise names." },
           { role: "user", content: gptPrompt }
         ],
         temperature: 0.3,

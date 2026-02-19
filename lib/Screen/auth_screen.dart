@@ -768,6 +768,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     DropdownButtonFormField<String>(
                       value: _selectedGender,
                       dropdownColor: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
                       style: const TextStyle(color: Colors.black),
                       decoration: InputDecoration(
                         labelText: "Gender",
@@ -775,11 +776,11 @@ class _AuthScreenState extends State<AuthScreen> {
                         fillColor: Colors.white,
                         labelStyle: const TextStyle(color: Colors.black54),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide.none,
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           borderSide: const BorderSide(color: AppColors.volt),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
@@ -788,8 +789,8 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                       ),
                       icon: const Icon(
-                        Icons.keyboard_arrow_down,
-                        color: Colors.black54,
+                        Icons.chevron_right,
+                        color: Colors.black38,
                       ),
                       items: const [
                         DropdownMenuItem(

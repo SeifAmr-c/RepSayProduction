@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart';
+import 'main_layout.dart';
 
 class CalorieCalculatorScreen extends StatefulWidget {
   const CalorieCalculatorScreen({super.key});
@@ -309,20 +310,18 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
               ),
               child: DropdownButtonFormField<String>(
                 value: _selectedGoal,
                 dropdownColor: Colors.white,
+                borderRadius: BorderRadius.circular(16),
                 style: const TextStyle(color: Colors.black, fontSize: 16),
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
                 ),
-                icon: const Icon(
-                  Icons.keyboard_arrow_down,
-                  color: Colors.black54,
-                ),
+                icon: const Icon(Icons.chevron_right, color: Colors.black38),
                 items: ['Bulking', 'Maintaining', 'Cutting']
                     .map(
                       (goal) => DropdownMenuItem(
@@ -584,7 +583,10 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
             width: double.infinity,
             height: 52,
             child: OutlinedButton.icon(
-              onPressed: _resetForm,
+              onPressed: () {
+                _resetForm();
+                MainLayout.navigateToTab(0);
+              },
               icon: const Icon(Icons.home_outlined),
               label: const Text(
                 "Return to Home",
