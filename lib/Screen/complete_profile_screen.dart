@@ -223,14 +223,15 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                   // Gender — Apple style (white bg, black text)
                   DropdownButtonFormField<String>(
                     value: _selectedGender,
-                    dropdownColor: Colors.white,
+                    dropdownColor: const Color(0xFFF5F5F5),
                     borderRadius: BorderRadius.circular(16),
-                    style: const TextStyle(color: Colors.black),
+                    menuMaxHeight: 200,
+                    style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       labelText: "Gender",
                       filled: true,
-                      fillColor: Colors.white,
-                      labelStyle: const TextStyle(color: Colors.black54),
+                      fillColor: AppColors.surface,
+                      labelStyle: const TextStyle(color: Colors.grey),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                         borderSide: BorderSide.none,
@@ -244,23 +245,36 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         vertical: 16,
                       ),
                     ),
-                    icon: const Icon(
-                      Icons.chevron_right,
-                      color: Colors.black38,
-                    ),
+                    icon: const Icon(Icons.chevron_right, color: Colors.grey),
+                    selectedItemBuilder: (context) => const [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Male",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Female",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
                     items: const [
                       DropdownMenuItem(
                         value: "Male",
                         child: Text(
                           "Male",
-                          style: TextStyle(color: Colors.black),
+                          style: TextStyle(color: Colors.black87),
                         ),
                       ),
                       DropdownMenuItem(
                         value: "Female",
                         child: Text(
                           "Female",
-                          style: TextStyle(color: Colors.black),
+                          style: TextStyle(color: Colors.black87),
                         ),
                       ),
                     ],

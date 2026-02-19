@@ -309,19 +309,46 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: DropdownButtonFormField<String>(
                 value: _selectedGoal,
-                dropdownColor: Colors.white,
+                dropdownColor: const Color(0xFFF5F5F5),
                 borderRadius: BorderRadius.circular(16),
-                style: const TextStyle(color: Colors.black, fontSize: 16),
+                menuMaxHeight: 200,
+                style: const TextStyle(color: Colors.white, fontSize: 16),
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
                 ),
-                icon: const Icon(Icons.chevron_right, color: Colors.black38),
+                icon: const Icon(Icons.chevron_right, color: Colors.grey),
+                selectedItemBuilder: (context) =>
+                    ['Bulking', 'Maintaining', 'Cutting']
+                        .map(
+                          (goal) => Align(
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  goal == 'Bulking'
+                                      ? Icons.trending_up
+                                      : goal == 'Cutting'
+                                      ? Icons.trending_down
+                                      : Icons.trending_flat,
+                                  color: AppColors.volt,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  goal,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                        .toList(),
                 items: ['Bulking', 'Maintaining', 'Cutting']
                     .map(
                       (goal) => DropdownMenuItem(
@@ -340,7 +367,7 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
                             const SizedBox(width: 12),
                             Text(
                               goal,
-                              style: const TextStyle(color: Colors.black),
+                              style: const TextStyle(color: Colors.black87),
                             ),
                           ],
                         ),
