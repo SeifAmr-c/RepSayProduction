@@ -992,7 +992,16 @@ class _AuthScreenState extends State<AuthScreen> {
           vertical: 16,
         ),
       ),
-      validator: (v) => v!.isEmpty ? "$label is required" : null,
+      validator: (v) {
+        if (v == null || v.isEmpty) return "$label is required";
+        if (isEmail) {
+          final emailRegex = RegExp(r'^[\w\.\-\+]+@[\w\.\-]+\.\w{2,}$');
+          if (!emailRegex.hasMatch(v.trim())) {
+            return "Please enter a valid email address";
+          }
+        }
+        return null;
+      },
     );
   }
 
