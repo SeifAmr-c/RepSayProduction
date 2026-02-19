@@ -64,16 +64,19 @@ serve(async (req) => {
     console.log("📜 Transcription:", transcription);
 
     // ⚠️ VALIDATION: Check if transcription is empty or too short
-    if (!transcription || transcription.trim().length < 5) {
-      console.log("❌ Empty or too short transcription detected");
+    if (!transcription || transcription.trim().length < 2) {
+      console.log("❌ Empty or too short transcription detected. Length:", transcription?.length || 0);
       return new Response(JSON.stringify({ 
         error: "EMPTY_RECORDING",
-        message: "Sorry, we could not detect any workout details. Please try again and speak clearly."
+        message: "Sorry, we could not detect any workout details. Please try again and speak clearly.",
+        transcription: transcription || ""
       }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    console.log(`✅ Transcription OK (${transcription.length} chars): ${transcription.substring(0, 100)}`);
 
     // 4. Call GPT-4o-mini to translate and extract exercises
     const gptPrompt = `
@@ -219,10 +222,11 @@ For non-gym content:
 
     // ⚠️ VALIDATION: Check if content is not gym related
     if (data.not_gym_related === true) {
-      console.log("❌ Non-gym content detected");
+      console.log("❌ Non-gym content detected. Transcription was:", transcription);
       return new Response(JSON.stringify({ 
         error: "NOT_GYM_RELATED",
-        message: "Sorry, we could not understand what you said. Please describe your workout exercises."
+        message: "Sorry, we could not understand what you said. Please describe your workout exercises.",
+        transcription: transcription
       }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -231,10 +235,11 @@ For non-gym content:
 
     // ⚠️ VALIDATION: Check if no exercises were extracted
     if (!data.exercises || data.exercises.length === 0) {
-      console.log("❌ No exercises extracted");
+      console.log("❌ No exercises extracted. Transcription was:", transcription);
       return new Response(JSON.stringify({ 
         error: "NO_EXERCISES",
-        message: "Sorry, we could not detect any workout details. Please try again and mention your exercises."
+        message: "Sorry, we could not detect any workout details. Please try again and mention your exercises.",
+        transcription: transcription
       }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
