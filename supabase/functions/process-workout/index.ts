@@ -40,7 +40,7 @@ serve(async (req) => {
     const whisperForm = new FormData();
     whisperForm.append("file", audioBlob, "audio.m4a");
     whisperForm.append("model", "whisper-1");
-    whisperForm.append("language", "ar"); // Arabic (Egyptian Arabic will be detected)
+    // No language forced — Whisper auto-detects English, Arabic, or mixed
 
     console.log("🎤 Transcribing with Whisper...");
 
@@ -77,7 +77,12 @@ serve(async (req) => {
 
     // 4. Call GPT-4o-mini to translate and extract exercises
     const gptPrompt = `
-You are an expert fitness assistant that specializes in understanding Egyptian Arabic gym terminology. The following is a transcription of someone describing their workout.
+You are an expert fitness assistant that understands gym terminology in English, Egyptian Arabic, and mixed English-Arabic speech.
+
+The user may speak in:
+- Pure English
+- Pure Egyptian Arabic
+- Mixed (English exercise names with Arabic sentence structure)
 
 TRANSCRIPTION:
 ${transcription}
@@ -188,7 +193,7 @@ For non-gym content:
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: "You are an expert fitness assistant that extracts workout data from Egyptian Arabic transcriptions. You must correctly distinguish between similar-sounding exercises (e.g., 'lateral raises' are a SHOULDER exercise, NOT 'lat pulldown' which is a BACK exercise). Always respond with valid JSON only. Never output duplicate exercises. Always use proper English exercise names." },
+          { role: "system", content: "You are an expert fitness assistant that extracts workout data from transcriptions in English, Egyptian Arabic, or mixed language. You must correctly distinguish between similar-sounding exercises (e.g., 'lateral raises' are a SHOULDER exercise, NOT 'lat pulldown' which is a BACK exercise). Always respond with valid JSON only. Never output duplicate exercises. Always use proper English exercise names." },
           { role: "user", content: gptPrompt }
         ],
         temperature: 0.3,
