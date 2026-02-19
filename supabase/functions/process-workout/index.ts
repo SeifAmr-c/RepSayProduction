@@ -12,17 +12,20 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  try {
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-    );
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+  );
 
+  let storagePath = "";
+
+  try {
     const openaiKey = Deno.env.get("OPENAI_API_KEY");
     if (!openaiKey) throw new Error("Missing OPENAI_API_KEY in Supabase Secrets");
 
     const body = await req.json();
     const { storage_path, duration, client_id } = body;
+    storagePath = storage_path;
     console.log(`📝 Processing: ${storage_path} for Client: ${client_id}`);
 
     // 1. Download Audio
@@ -257,7 +260,7 @@ For non-gym content:
         name: data.workout_name || "Workout",
         date: new Date().toISOString(),
         notes: "Processed by AI (OpenAI)",
-        audio_path: storage_path,
+        audio_path: null,
         duration_seconds: duration || 0,
       })
       .select()
@@ -279,12 +282,31 @@ For non-gym content:
 
     console.log("✅ Workout saved successfully!");
 
+    // 🗑️ Cleanup: Delete audio file from storage after processing
+    try {
+      await supabase.storage.from('workouts-audio').remove([storage_path]);
+      console.log("🗑️ Audio file deleted from storage:", storage_path);
+    } catch (cleanupErr) {
+      console.warn("⚠️ Failed to delete audio file:", cleanupErr);
+    }
+
     return new Response(JSON.stringify({ success: true, data, transcription }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
   } catch (error) {
     console.error("🔥 Error:", error);
+
+    // 🗑️ Cleanup: Delete audio file even on error
+    if (storagePath) {
+      try {
+        await supabase.storage.from('workouts-audio').remove([storagePath]);
+        console.log("🗑️ Audio file cleaned up after error:", storagePath);
+      } catch (cleanupErr) {
+        console.warn("⚠️ Cleanup failed:", cleanupErr);
+      }
+    }
+
     let msg = "Unknown error";
     if (error instanceof Error) {
       msg = error.message;

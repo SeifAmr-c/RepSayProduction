@@ -969,6 +969,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // Refresh data including the updated counter
       await _loadAllData();
     } catch (e) {
+      debugPrint('❌ Recording/Processing error: $e');
       // Close processing dialog if still open
       if (mounted) Navigator.of(context, rootNavigator: true).pop();
 
