@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart';
 
 class CalorieCalculatorScreen extends StatefulWidget {
@@ -12,6 +13,7 @@ class CalorieCalculatorScreen extends StatefulWidget {
 }
 
 class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
+  final _supabase = Supabase.instance.client;
   final _formKey = GlobalKey<FormState>();
   final _ageCtrl = TextEditingController();
   final _weightCtrl = TextEditingController();
@@ -30,6 +32,22 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
     _weightCtrl.dispose();
     _heightCtrl.dispose();
     super.dispose();
+  }
+
+  /// Log an analytics event
+  Future<void> _logAnalytics(
+    String eventType, [
+    Map<String, dynamic>? metadata,
+  ]) async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return;
+      await _supabase.from('user_analytics').insert({
+        'user_id': user.id,
+        'event_type': eventType,
+        'metadata': metadata ?? {},
+      });
+    } catch (_) {}
   }
 
   /// Mifflin-St Jeor equation + goal modifier
@@ -95,6 +113,11 @@ class _CalorieCalculatorScreenState extends State<CalorieCalculatorScreen> {
         _calculatedCalories = calories;
         _idealWeight = idealWt;
         _isCalculating = false;
+      });
+      // Log analytics
+      _logAnalytics('calorie_calc', {
+        'goal': _selectedGoal,
+        'calories': calories,
       });
     }
   }

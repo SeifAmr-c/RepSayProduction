@@ -787,6 +787,13 @@ class _ClientDetailScreenState extends State<ClientDetailScreen> {
   final int _freeRecordingLimit = 2;
   int _failedAttempts = 0; // Track failed voice recording attempts
 
+  // Rate Limiting
+  DateTime? _lastRecordingTime;
+  int _dailyRecordingCount = 0;
+  int _recordingDay = 0;
+  static const int _coachDailyLimit = 50;
+  static const int _cooldownSeconds = 10;
+
   @override
   void initState() {
     super.initState();
@@ -849,7 +856,7 @@ class _ClientDetailScreenState extends State<ClientDetailScreen> {
       final profile = await _supabase
           .from('profiles')
           .select(
-            'plan, recordings_this_month, recording_month, failed_voice_attempts',
+            'plan, recordings_this_month, recording_month, failed_voice_attempts, recordings_today, recording_day',
           )
           .eq('id', user.id)
           .maybeSingle();
@@ -871,11 +878,25 @@ class _ClientDetailScreenState extends State<ClientDetailScreen> {
             .eq('id', user.id);
       }
 
+      // Daily recording counter reset
+      final currentDay = DateTime.now().day;
+      int dailyCount = profile?['recordings_today'] ?? 0;
+      int savedDay = profile?['recording_day'] ?? currentDay;
+      if (savedDay != currentDay) {
+        dailyCount = 0;
+        await _supabase
+            .from('profiles')
+            .update({'recordings_today': 0, 'recording_day': currentDay})
+            .eq('id', user.id);
+      }
+
       if (mounted) {
         setState(() {
           _userPlan = profile?['plan'] ?? 'free';
           _monthlyRecordingCount = recordingsUsed;
           _failedAttempts = profile?['failed_voice_attempts'] ?? 0;
+          _dailyRecordingCount = dailyCount;
+          _recordingDay = savedDay;
         });
       }
     } catch (e) {
@@ -1297,11 +1318,45 @@ class _ClientDetailScreenState extends State<ClientDetailScreen> {
     }
   }
 
+  /// Log an analytics event
+  Future<void> _logAnalytics(
+    String eventType, [
+    Map<String, dynamic>? metadata,
+  ]) async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return;
+      await _supabase.from('user_analytics').insert({
+        'user_id': user.id,
+        'event_type': eventType,
+        'metadata': metadata ?? {},
+      });
+    } catch (_) {}
+  }
+
   Future<void> _startRecording() async {
-    // Check recording limit for free users
+    // 1. Free tier monthly limit
     if (_userPlan == 'free' && _monthlyRecordingCount >= _freeRecordingLimit) {
       _showRecordingLimitDialog();
       return;
+    }
+
+    // 2. Cooldown check (10 seconds between recordings)
+    if (_lastRecordingTime != null) {
+      final elapsed = DateTime.now().difference(_lastRecordingTime!).inSeconds;
+      if (elapsed < _cooldownSeconds) {
+        final remaining = _cooldownSeconds - elapsed;
+        _showCooldownDialog(remaining);
+        return;
+      }
+    }
+
+    // 3. Daily limit check for Pro/Coach
+    if (_userPlan != 'free') {
+      if (_dailyRecordingCount >= _coachDailyLimit) {
+        _showDailyLimitDialog(_coachDailyLimit);
+        return;
+      }
     }
 
     if (!await _recorder.hasPermission()) return;
@@ -1319,6 +1374,7 @@ class _ClientDetailScreenState extends State<ClientDetailScreen> {
       _isRecording = true;
       _secondsLeft = 30;
       _currentRecordingPath = path;
+      _lastRecordingTime = DateTime.now();
     });
 
     // Start countdown timer
@@ -1349,6 +1405,66 @@ class _ClientDetailScreenState extends State<ClientDetailScreen> {
         }
       } catch (_) {}
     });
+  }
+
+  void _showCooldownDialog(int secondsRemaining) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Row(
+          children: [
+            Icon(Icons.timer, color: Colors.orangeAccent, size: 28),
+            SizedBox(width: 10),
+            Text("Cooldown", style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        content: Text(
+          "Please wait $secondsRemaining seconds between recordings.",
+          style: const TextStyle(color: Colors.grey),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.volt,
+              foregroundColor: Colors.black,
+            ),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDailyLimitDialog(int limit) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Row(
+          children: [
+            Icon(Icons.block, color: Colors.redAccent, size: 28),
+            SizedBox(width: 10),
+            Text("Daily Limit", style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        content: Text(
+          "You have reached your daily limit of $limit recordings. Try again tomorrow.",
+          style: const TextStyle(color: Colors.grey),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.volt,
+              foregroundColor: Colors.black,
+            ),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _stopRecording() async {
@@ -1417,15 +1533,22 @@ class _ClientDetailScreenState extends State<ClientDetailScreen> {
         return;
       }
 
-      // SUCCESS: Only increment recordings counter on successful processing
-      // Direct update instead of RPC (more reliable)
+      // SUCCESS: Increment both monthly and daily counters
       await _supabase
           .from('profiles')
           .update({
             'recordings_this_month': _monthlyRecordingCount + 1,
             'recording_month': DateTime.now().month,
+            'recordings_today': _dailyRecordingCount + 1,
+            'recording_day': DateTime.now().day,
           })
           .eq('id', _supabase.auth.currentUser!.id);
+
+      // Log analytics event
+      _logAnalytics('recording', {
+        'duration': 30 - _secondsLeft,
+        'for_client': widget.clientId,
+      });
 
       // Refresh data
       if (mounted) {

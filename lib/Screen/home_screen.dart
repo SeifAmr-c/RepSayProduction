@@ -45,6 +45,14 @@ class _HomeScreenState extends State<HomeScreen> {
   final int _freeLimit = 2; // Free tier limit
   int _failedAttempts = 0; // Track failed voice recording attempts
 
+  // Rate Limiting
+  DateTime? _lastRecordingTime;
+  int _dailyRecordingCount = 0;
+  int _recordingDay = 0;
+  static const int _proDailyLimit = 30;
+  static const int _coachDailyLimit = 50;
+  static const int _cooldownSeconds = 10;
+
   // Realtime
   RealtimeChannel? _profileChannel;
 
@@ -71,10 +79,12 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadAllData();
     _setupProGiftListener();
     ReviewHelper.checkAndRequestReview();
+    _logAnalytics('session_start');
   }
 
   @override
   void dispose() {
+    _logAnalytics('session_end');
     _countdownTimer?.cancel();
     _amplitudeTimer?.cancel();
     _recorder.dispose();
@@ -99,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final profile = await _supabase
           .from('profiles')
           .select(
-            'full_name, plan, recordings_this_month, recording_month, failed_voice_attempts, pro_expires_at, pro_gift_message',
+            'full_name, plan, recordings_this_month, recording_month, failed_voice_attempts, pro_expires_at, pro_gift_message, recordings_today, recording_day',
           )
           .eq('id', user.id)
           .maybeSingle();
@@ -125,11 +135,25 @@ class _HomeScreenState extends State<HomeScreen> {
               .eq('id', user.id);
         }
 
+        // Daily recording counter reset
+        final currentDay = DateTime.now().day;
+        int dailyCount = profile['recordings_today'] ?? 0;
+        int savedDay = profile['recording_day'] ?? currentDay;
+        if (savedDay != currentDay) {
+          dailyCount = 0;
+          await _supabase
+              .from('profiles')
+              .update({'recordings_today': 0, 'recording_day': currentDay})
+              .eq('id', user.id);
+        }
+
         setState(() {
           _firstName = fullName.split(' ')[0];
           _userPlan = profile['plan'] ?? 'free';
           _monthlyCount = recordingsUsed;
           _failedAttempts = profile['failed_voice_attempts'] ?? 0;
+          _dailyRecordingCount = dailyCount;
+          _recordingDay = savedDay;
         });
 
         // Check pro expiry
@@ -699,10 +723,48 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// Log an analytics event
+  Future<void> _logAnalytics(
+    String eventType, [
+    Map<String, dynamic>? metadata,
+  ]) async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return;
+      await _supabase.from('user_analytics').insert({
+        'user_id': user.id,
+        'event_type': eventType,
+        'metadata': metadata ?? {},
+      });
+    } catch (_) {}
+  }
+
   Future<void> _startRecording() async {
+    // 1. Free tier monthly limit
     if (_userPlan == 'free' && _monthlyCount >= _freeLimit) {
       _showLimitDialog();
       return;
+    }
+
+    // 2. Cooldown check (10 seconds between recordings)
+    if (_lastRecordingTime != null) {
+      final elapsed = DateTime.now().difference(_lastRecordingTime!).inSeconds;
+      if (elapsed < _cooldownSeconds) {
+        final remaining = _cooldownSeconds - elapsed;
+        _showCooldownDialog(remaining);
+        return;
+      }
+    }
+
+    // 3. Daily limit check for Pro/Coach
+    if (_userPlan != 'free') {
+      final dailyLimit = _userPlan == 'coach'
+          ? _coachDailyLimit
+          : _proDailyLimit;
+      if (_dailyRecordingCount >= dailyLimit) {
+        _showDailyLimitDialog(dailyLimit);
+        return;
+      }
     }
 
     if (!await _recorder.hasPermission()) return;
@@ -720,10 +782,71 @@ class _HomeScreenState extends State<HomeScreen> {
       _recordingPath = path;
       _secondsLeft = 30;
       _recordingStartTime = DateTime.now();
+      _lastRecordingTime = DateTime.now();
     });
 
     _startCountdown();
     _startAmplitudeListener();
+  }
+
+  void _showCooldownDialog(int secondsRemaining) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Row(
+          children: [
+            Icon(Icons.timer, color: Colors.orangeAccent, size: 28),
+            SizedBox(width: 10),
+            Text("Cooldown", style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        content: Text(
+          "Please wait $secondsRemaining seconds between recordings.",
+          style: const TextStyle(color: Colors.grey),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.volt,
+              foregroundColor: Colors.black,
+            ),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDailyLimitDialog(int limit) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Row(
+          children: [
+            Icon(Icons.block, color: Colors.redAccent, size: 28),
+            SizedBox(width: 10),
+            Text("Daily Limit", style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        content: Text(
+          "You have reached your daily limit of $limit recordings. Try again tomorrow.",
+          style: const TextStyle(color: Colors.grey),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.volt,
+              foregroundColor: Colors.black,
+            ),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showLimitDialog() {
@@ -829,15 +952,19 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
 
-      // SUCCESS: Only increment recordings counter on successful processing
-      // Direct update instead of RPC (more reliable)
+      // SUCCESS: Increment both monthly and daily counters
       await _supabase
           .from('profiles')
           .update({
             'recordings_this_month': _monthlyCount + 1,
             'recording_month': DateTime.now().month,
+            'recordings_today': _dailyRecordingCount + 1,
+            'recording_day': DateTime.now().day,
           })
           .eq('id', _supabase.auth.currentUser!.id);
+
+      // Log analytics event
+      _logAnalytics('recording', {'duration': durationSec});
 
       // Refresh data including the updated counter
       await _loadAllData();

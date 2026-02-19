@@ -24,6 +24,20 @@ class _ExerciseAnalysisScreenState extends State<ExerciseAnalysisScreen> {
     final now = DateTime.now();
     _currentMonthName = _monthName(now.month);
     _loadData();
+    _logAnalytics('exercise_analysis');
+  }
+
+  /// Log an analytics event
+  Future<void> _logAnalytics(String eventType) async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return;
+      await _supabase.from('user_analytics').insert({
+        'user_id': user.id,
+        'event_type': eventType,
+        'metadata': {},
+      });
+    } catch (_) {}
   }
 
   Future<void> _loadData() async {
