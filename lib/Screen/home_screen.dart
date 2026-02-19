@@ -792,30 +792,85 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showCooldownDialog(int secondsRemaining) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: const Row(
-          children: [
-            Icon(Icons.timer, color: Colors.orangeAccent, size: 28),
-            SizedBox(width: 10),
-            Text("Cooldown", style: TextStyle(color: Colors.white)),
-          ],
-        ),
-        content: Text(
-          "Please wait $secondsRemaining seconds between recordings.",
-          style: const TextStyle(color: Colors.grey),
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.volt,
-              foregroundColor: Colors.black,
-            ),
-            child: const Text("OK"),
-          ),
-        ],
-      ),
+      barrierDismissible: false,
+      builder: (ctx) {
+        int remaining = secondsRemaining;
+        Timer? timer;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            timer ??= Timer.periodic(const Duration(seconds: 1), (_) {
+              if (remaining <= 1) {
+                timer?.cancel();
+                if (Navigator.of(ctx).canPop()) Navigator.pop(ctx);
+              } else {
+                setDialogState(() => remaining--);
+              }
+            });
+            return AlertDialog(
+              backgroundColor: AppColors.surface,
+              title: const Row(
+                children: [
+                  Icon(Icons.timer, color: Colors.orangeAccent, size: 28),
+                  SizedBox(width: 10),
+                  Text("Cooldown", style: TextStyle(color: Colors.white)),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 80,
+                    height: 80,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        CircularProgressIndicator(
+                          value: remaining / secondsRemaining,
+                          strokeWidth: 6,
+                          backgroundColor: Colors.grey.withOpacity(0.3),
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            AppColors.volt,
+                          ),
+                        ),
+                        Center(
+                          child: Text(
+                            "$remaining",
+                            style: const TextStyle(
+                              color: AppColors.volt,
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Please wait before recording again.",
+                    style: TextStyle(color: Colors.grey),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+              actionsAlignment: MainAxisAlignment.center,
+              actions: [
+                ElevatedButton(
+                  onPressed: () {
+                    timer?.cancel();
+                    Navigator.pop(ctx);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.volt,
+                    foregroundColor: Colors.black,
+                  ),
+                  child: const Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
