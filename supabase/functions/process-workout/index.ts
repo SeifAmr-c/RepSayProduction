@@ -20,6 +20,23 @@ serve(async (req) => {
   let storagePath = "";
 
   try {
+    // 🔒 SECURITY: Validate the calling user via JWT
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "No authorization header" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    if (userError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const openaiKey = Deno.env.get("OPENAI_API_KEY");
     if (!openaiKey) throw new Error("Missing OPENAI_API_KEY in Supabase Secrets");
 
@@ -249,8 +266,8 @@ For non-gym content:
       });
     }
 
-    // 6. Save to DB
-    const userId = storage_path.split("/")[0];
+    // 6. Save to DB — use authenticated user ID (NOT from storage_path)
+    const userId = user.id;
 
     const { data: workout, error: wError } = await supabase
       .from("workouts")

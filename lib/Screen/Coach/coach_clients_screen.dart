@@ -1359,7 +1359,41 @@ class _ClientDetailScreenState extends State<ClientDetailScreen> {
       }
     }
 
-    if (!await _recorder.hasPermission()) return;
+    if (!await _recorder.hasPermission()) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: AppColors.surface,
+            title: const Row(
+              children: [
+                Icon(Icons.mic_off, color: Colors.redAccent, size: 28),
+                SizedBox(width: 10),
+                Text(
+                  "Microphone Access",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ],
+            ),
+            content: const Text(
+              "RepSay needs microphone access to record your workout. Please enable it in Settings.",
+              style: TextStyle(color: Colors.grey),
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.pop(ctx),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.volt,
+                  foregroundColor: Colors.black,
+                ),
+                child: const Text("OK"),
+              ),
+            ],
+          ),
+        );
+      }
+      return;
+    }
 
     final dir = await getTemporaryDirectory();
     final path =
@@ -1564,15 +1598,21 @@ class _ClientDetailScreenState extends State<ClientDetailScreen> {
           .from('workouts-audio')
           .upload(storagePath, File(path));
 
-      // Call Edge Function and check response
-      final response = await _supabase.functions.invoke(
-        'process-workout',
-        body: {
-          'storage_path': storagePath,
-          'duration': 30 - _secondsLeft,
-          'client_id': widget.clientId, // This ensures it goes to the client
-        },
-      );
+      // Call Edge Function and check response (with timeout to prevent infinite spinner)
+      final response = await _supabase.functions
+          .invoke(
+            'process-workout',
+            body: {
+              'storage_path': storagePath,
+              'duration': 30 - _secondsLeft,
+              'client_id':
+                  widget.clientId, // This ensures it goes to the client
+            },
+          )
+          .timeout(
+            const Duration(seconds: 45),
+            onTimeout: () => throw TimeoutException('Processing took too long'),
+          );
 
       // Close processing dialog
       if (mounted) Navigator.of(context, rootNavigator: true).pop();

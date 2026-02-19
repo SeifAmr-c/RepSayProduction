@@ -767,7 +767,41 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
-    if (!await _recorder.hasPermission()) return;
+    if (!await _recorder.hasPermission()) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: AppColors.surface,
+            title: const Row(
+              children: [
+                Icon(Icons.mic_off, color: Colors.redAccent, size: 28),
+                SizedBox(width: 10),
+                Text(
+                  "Microphone Access",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ],
+            ),
+            content: const Text(
+              "RepSay needs microphone access to record your workout. Please enable it in Settings.",
+              style: TextStyle(color: Colors.grey),
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.pop(ctx),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.volt,
+                  foregroundColor: Colors.black,
+                ),
+                child: const Text("OK"),
+              ),
+            ],
+          ),
+        );
+      }
+      return;
+    }
     final dir = await getTemporaryDirectory();
     final path =
         '${dir.path}/loggy_${DateTime.now().millisecondsSinceEpoch}.m4a';
@@ -988,11 +1022,16 @@ class _HomeScreenState extends State<HomeScreen> {
           .from('workouts-audio')
           .upload(storagePath, File(finalPath));
 
-      // Call edge function and check response
-      final response = await _supabase.functions.invoke(
-        'process-workout',
-        body: {'storage_path': storagePath, 'duration': durationSec},
-      );
+      // Call edge function and check response (with timeout to prevent infinite spinner)
+      final response = await _supabase.functions
+          .invoke(
+            'process-workout',
+            body: {'storage_path': storagePath, 'duration': durationSec},
+          )
+          .timeout(
+            const Duration(seconds: 45),
+            onTimeout: () => throw TimeoutException('Processing took too long'),
+          );
 
       // Close processing dialog
       if (mounted) Navigator.of(context, rootNavigator: true).pop();

@@ -117,10 +117,12 @@ class _ProScreenState extends State<ProScreen> {
                 .eq('id', user.id);
           }
 
-          Navigator.pop(context, true); // Refresh the previous screen
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text("Welcome to Pro! 🎉")));
+          if (mounted) {
+            Navigator.pop(context, true);
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text("Welcome to Pro! 🎉")));
+          }
         }
       }
     } on PlatformException catch (e) {
@@ -165,6 +167,7 @@ class _ProScreenState extends State<ProScreen> {
                 .eq('id', user.id);
           }
 
+          if (!mounted) return;
           Navigator.pop(context, true);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
