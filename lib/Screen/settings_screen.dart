@@ -423,6 +423,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             "",
             onTap: () => _openUrl("https://repsayyy.vercel.app/#contact"),
           ),
+          _buildInstagramTile(),
 
           _buildSection("Actions"),
           // Admin button - only visible for admin email
@@ -449,44 +450,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _deleteAccount,
           ),
 
-          const SizedBox(height: 24),
-
-          // Instagram
-          Center(
-            child: GestureDetector(
-              onTap: () => _openUrl(
-                "https://www.instagram.com/repsayeg?igsh=MTI0ZDFwZGl5MzN2cA%3D%3D&utm_source=qr",
-              ),
-              child: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  gradient: const LinearGradient(
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
-                    colors: [
-                      Color(0xFF405DE6),
-                      Color(0xFF833AB4),
-                      Color(0xFFC13584),
-                      Color(0xFFE1306C),
-                      Color(0xFFFD1D1D),
-                      Color(0xFFF56040),
-                      Color(0xFFF77737),
-                      Color(0xFFFCAF45),
-                      Color(0xFFFFDC80),
-                    ],
-                  ),
-                ),
-                child: const Icon(
-                  Icons.camera_alt_outlined,
-                  color: Colors.white,
-                  size: 26,
-                ),
-              ),
-            ),
-          ),
-
           const SizedBox(height: 16),
 
           // Beta notice
@@ -501,6 +464,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 24),
         ],
+      ),
+    );
+  }
+
+  Widget _buildInstagramTile() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+      ),
+      child: ListTile(
+        onTap: () => _openUrl(
+          "https://www.instagram.com/repsayeg?igsh=MTI0ZDFwZGl5MzN2cA%3D%3D&utm_source=qr",
+        ),
+        leading: const Icon(
+          Icons.photo_camera_front_outlined,
+          color: AppColors.volt,
+        ),
+        title: const Text(
+          "Instagram",
+          style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+        ),
+        trailing: SizedBox(
+          width: 28,
+          height: 28,
+          child: CustomPaint(painter: _InstagramLogoPainter()),
+        ),
       ),
     );
   }
@@ -583,4 +575,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
+}
+
+// Custom painter that draws the Instagram logo shape in AppColors.volt
+class _InstagramLogoPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = AppColors.volt
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    // Rounded rectangle (outer border)
+    final rrect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(1, 1, size.width - 2, size.height - 2),
+      const Radius.circular(8),
+    );
+    canvas.drawRRect(rrect, paint);
+
+    // Center circle (camera lens)
+    final center = Offset(size.width / 2, size.height / 2);
+    canvas.drawCircle(center, size.width * 0.22, paint);
+
+    // Small dot (flash) top-right
+    final dotPaint = Paint()
+      ..color = AppColors.volt
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(
+      Offset(size.width * 0.72, size.height * 0.28),
+      2.5,
+      dotPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
