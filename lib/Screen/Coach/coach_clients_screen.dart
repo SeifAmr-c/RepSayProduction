@@ -21,7 +21,7 @@ class CoachClientsScreen extends StatefulWidget {
 
 class _CoachClientsScreenState extends State<CoachClientsScreen> {
   final _supabase = Supabase.instance.client;
-  String _coachName = "Coach";
+  String _coachName = "";
   List<Map<String, dynamic>> _clients = [];
   bool _loading = true;
   String _plan = 'free';
@@ -32,6 +32,12 @@ class _CoachClientsScreenState extends State<CoachClientsScreen> {
   @override
   void initState() {
     super.initState();
+    // Set name immediately from user metadata to avoid "Coach" flash
+    final meta = _supabase.auth.currentUser?.userMetadata;
+    if (meta != null && meta['full_name'] != null) {
+      final fullName = meta['full_name'] as String;
+      _coachName = fullName.split(' ')[0];
+    }
     _loadData();
     _setupProGiftListener();
     ReviewHelper.checkAndRequestReview();
