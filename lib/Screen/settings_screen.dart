@@ -448,6 +448,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Colors.redAccent,
             _deleteAccount,
           ),
+
+          const SizedBox(height: 24),
+
+          // Instagram
+          Center(
+            child: GestureDetector(
+              onTap: () => _openUrl(
+                "https://www.instagram.com/repsayeg?igsh=MTI0ZDFwZGl5MzN2cA%3D%3D&utm_source=qr",
+              ),
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topRight,
+                    end: Alignment.bottomLeft,
+                    colors: [
+                      Color(0xFF405DE6),
+                      Color(0xFF833AB4),
+                      Color(0xFFC13584),
+                      Color(0xFFE1306C),
+                      Color(0xFFFD1D1D),
+                      Color(0xFFF56040),
+                      Color(0xFFF77737),
+                      Color(0xFFFCAF45),
+                      Color(0xFFFFDC80),
+                    ],
+                  ),
+                ),
+                child: const Icon(
+                  Icons.camera_alt_outlined,
+                  color: Colors.white,
+                  size: 26,
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Beta notice
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              "The app is in the beta phase. If you have any recommendations, contact us on our website.",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey, fontSize: 12, height: 1.5),
+            ),
+          ),
+
+          const SizedBox(height: 24),
         ],
       ),
     );
