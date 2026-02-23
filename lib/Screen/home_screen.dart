@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart'; // Imports AppColors
+import '../Services/subscription_service.dart';
 import 'manual_workout_screen.dart';
 import 'pro_screen.dart';
 import 'auth_screen.dart';
@@ -80,6 +81,17 @@ class _HomeScreenState extends State<HomeScreen> {
     _setupProGiftListener();
     ReviewHelper.checkAndRequestReview();
     _logAnalytics('session_start');
+
+    // Listen to SubscriptionService for real-time pro status updates
+    SubscriptionService.instance.isPro.addListener(_onSubscriptionChanged);
+  }
+
+  void _onSubscriptionChanged() {
+    if (mounted) {
+      setState(() {
+        _userPlan = SubscriptionService.instance.isPro.value ? 'pro' : 'free';
+      });
+    }
   }
 
   @override
@@ -88,6 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _countdownTimer?.cancel();
     _amplitudeTimer?.cancel();
     _recorder.dispose();
+    SubscriptionService.instance.isPro.removeListener(_onSubscriptionChanged);
     if (_profileChannel != null) _supabase.removeChannel(_profileChannel!);
     super.dispose();
   }
@@ -159,8 +172,10 @@ class _HomeScreenState extends State<HomeScreen> {
         // Check pro expiry
         await _checkProExpiry(profile, user.id);
 
-        // Sync subscription status with RevenueCat (source of truth from Apple)
-        await _syncRevenueCatStatus(user.id);
+        // Sync from SubscriptionService (RevenueCat is source of truth)
+        if (SubscriptionService.instance.isPro.value && _userPlan != 'pro') {
+          setState(() => _userPlan = 'pro');
+        }
 
         // Check for pending gift message
         final giftMsg = profile['pro_gift_message'] as String?;
@@ -242,51 +257,6 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() => _userPlan = 'free');
         debugPrint('⏰ Pro plan expired, reverted to free');
       }
-    }
-  }
-
-  /// Sync subscription status with RevenueCat (Apple is the source of truth)
-  Future<void> _syncRevenueCatStatus(String userId) async {
-    try {
-      final customerInfo = await Purchases.getCustomerInfo();
-      final entitlement = customerInfo.entitlements.all["pro"];
-      final isActiveOnApple = entitlement?.isActive == true;
-
-      if (isActiveOnApple && _userPlan != 'pro') {
-        // User has active subscription on Apple but DB says free
-        // This can happen after reinstall — restore their pro access
-        final productId = entitlement?.productIdentifier ?? '';
-        await _supabase
-            .from('profiles')
-            .update({'plan': 'pro', 'product_id': productId})
-            .eq('id', userId);
-        setState(() => _userPlan = 'pro');
-        debugPrint('🔄 RevenueCat sync: restored pro (product: $productId)');
-      } else if (!isActiveOnApple && _userPlan == 'pro') {
-        // User cancelled subscription on Apple but DB still says pro
-        // Only revert if this is NOT a gifted pro (gifted pro has pro_expires_at)
-        final profile = await _supabase
-            .from('profiles')
-            .select('pro_expires_at')
-            .eq('id', userId)
-            .maybeSingle();
-        final hasGiftExpiry = profile?['pro_expires_at'] != null;
-
-        if (!hasGiftExpiry) {
-          // Not a gift — subscription was cancelled, revert to free
-          await _supabase
-              .from('profiles')
-              .update({'plan': 'free', 'product_id': null})
-              .eq('id', userId);
-          setState(() => _userPlan = 'free');
-          debugPrint(
-            '🔄 RevenueCat sync: reverted to free (subscription cancelled)',
-          );
-        }
-      }
-    } catch (e) {
-      // Don't block the app if RevenueCat check fails — just log it
-      debugPrint('⚠️ RevenueCat sync failed (non-blocking): $e');
     }
   }
 

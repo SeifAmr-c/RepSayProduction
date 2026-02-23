@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:crypto/crypto.dart';
 import '../main.dart'; // Import to access AppColors
+import '../Services/subscription_service.dart';
 import 'landing_page.dart'; // To handle User vs Coach redirection
 import 'complete_profile_screen.dart';
 
@@ -121,6 +122,12 @@ class _AuthScreenState extends State<AuthScreen> {
         }
       }
 
+      // Link RevenueCat to Supabase user
+      final currentUser = _client.auth.currentUser;
+      if (currentUser != null) {
+        await SubscriptionService.instance.loginUser(currentUser.id);
+      }
+
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const LandingPage()),
@@ -195,6 +202,17 @@ class _AuthScreenState extends State<AuthScreen> {
         return;
       }
 
+      // Capture Apple-provided name (only available on FIRST authorization)
+      final appleGiven = credential.givenName;
+      final appleFamily = credential.familyName;
+      String? appleName;
+      if (appleGiven != null || appleFamily != null) {
+        appleName = [
+          appleGiven ?? '',
+          appleFamily ?? '',
+        ].where((s) => s.isNotEmpty).join(' ');
+      }
+
       // Sign in to Supabase with the Apple ID token
       final response = await _client.auth.signInWithIdToken(
         provider: OAuthProvider.apple,
@@ -206,6 +224,18 @@ class _AuthScreenState extends State<AuthScreen> {
         setState(() => _authError = 'Apple Sign-In failed. Please try again.');
         return;
       }
+
+      // Persist Apple-provided name into user metadata (only if available)
+      if (appleName != null && appleName.isNotEmpty) {
+        try {
+          await _client.auth.updateUser(
+            UserAttributes(data: {'full_name': appleName}),
+          );
+        } catch (_) {}
+      }
+
+      // Link RevenueCat to Supabase user
+      await SubscriptionService.instance.loginUser(response.user!.id);
 
       // Check if profile exists AND has required fields filled
       final profile = await _client

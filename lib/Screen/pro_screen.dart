@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // For HapticFeedback
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../main.dart'; // For AppColors
+import '../Services/subscription_service.dart';
 
 class ProScreen extends StatefulWidget {
   final bool isCoach;
@@ -100,29 +102,19 @@ class _ProScreenState extends State<ProScreen> {
 
     setState(() => _isLoading = true);
     try {
-      // Trigger the Apple Pay Sheet via RevenueCat
+      // Trigger the In-App Purchase sheet via RevenueCat
       CustomerInfo customerInfo = await Purchases.purchasePackage(packageToBuy);
 
       // Check if the purchase was successful
       if (customerInfo.entitlements.all["pro"]?.isActive == true) {
-        if (mounted) {
-          // Save "Pro" status and product ID to database
-          final user = Supabase.instance.client.auth.currentUser;
-          if (user != null) {
-            final productId =
-                customerInfo.entitlements.all["pro"]?.productIdentifier ?? '';
-            await Supabase.instance.client
-                .from('profiles')
-                .update({'plan': 'pro', 'product_id': productId})
-                .eq('id', user.id);
-          }
+        // Let SubscriptionService handle global state + Supabase sync
+        await SubscriptionService.instance.checkEntitlement();
 
-          if (mounted) {
-            Navigator.pop(context, true);
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text("Welcome to Pro! 🎉")));
-          }
+        if (mounted) {
+          Navigator.pop(context, true);
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text("Welcome to Pro! 🎉")));
         }
       }
     } on PlatformException catch (e) {
@@ -156,37 +148,28 @@ class _ProScreenState extends State<ProScreen> {
     try {
       CustomerInfo customerInfo = await Purchases.restorePurchases();
       if (customerInfo.entitlements.all["pro"]?.isActive == true) {
-        if (mounted) {
-          final user = Supabase.instance.client.auth.currentUser;
-          if (user != null) {
-            final productId =
-                customerInfo.entitlements.all["pro"]?.productIdentifier ?? '';
-            await Supabase.instance.client
-                .from('profiles')
-                .update({'plan': 'pro', 'product_id': productId})
-                .eq('id', user.id);
-          }
+        // Let SubscriptionService handle global state + Supabase sync
+        await SubscriptionService.instance.checkEntitlement();
 
-          if (!mounted) return;
-          Navigator.pop(context, true);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text(
-                "Pro access restored! 🎉",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+        if (!mounted) return;
+        Navigator.pop(context, true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              "Pro access restored! 🎉",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
               ),
-              backgroundColor: AppColors.surface,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              margin: const EdgeInsets.all(16),
             ),
-          );
-        }
+            backgroundColor: AppColors.surface,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.all(16),
+          ),
+        );
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -341,11 +324,9 @@ class _ProScreenState extends State<ProScreen> {
                                     color: Colors.black,
                                   ),
                                 )
-                              : const Icon(Icons.apple, size: 28),
+                              : const Icon(Icons.lock_open, size: 24),
                           label: Text(
-                            _isLoading
-                                ? "PROCESSING..."
-                                : "Subscribe with Apple Pay",
+                            _isLoading ? "PROCESSING..." : "Subscribe Now",
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
@@ -366,6 +347,67 @@ class _ProScreenState extends State<ProScreen> {
                           decoration: TextDecoration.underline,
                         ),
                       ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // ── Subscription Compliance Footer (Guideline 3.1.2) ──
+                    const Text(
+                      'Subscriptions will be charged to your Apple ID account '
+                      'at confirmation of purchase. Subscriptions automatically '
+                      'renew unless cancelled at least 24 hours before the end '
+                      'of the current period. Your account will be charged for '
+                      'renewal within 24 hours prior to the end of the current '
+                      'period. You can manage and cancel your subscriptions by '
+                      'going to your account settings on the App Store after '
+                      'purchase.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 11,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GestureDetector(
+                          onTap: () => launchUrl(
+                            Uri.parse('https://repsayyy.vercel.app/#terms'),
+                            mode: LaunchMode.externalApplication,
+                          ),
+                          child: const Text(
+                            'Terms of Use',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          child: Text(
+                            '·',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => launchUrl(
+                            Uri.parse('https://repsayyy.vercel.app/#privacy'),
+                            mode: LaunchMode.externalApplication,
+                          ),
+                          child: const Text(
+                            'Privacy Policy',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

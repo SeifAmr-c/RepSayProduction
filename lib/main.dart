@@ -5,6 +5,7 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 
 // --- IMPORTS ---
 import 'package:flutter_test_1/Screen/landing_page.dart';
+import 'package:flutter_test_1/Services/subscription_service.dart';
 
 // --- GLOBAL COLORS ---
 class AppColors {
@@ -40,6 +41,15 @@ Future<void> main() async {
     configuration = PurchasesConfiguration("appl_dWkXNBeNsWJzbfZvZcxAYSJlWcp");
     await Purchases.configure(configuration);
     debugPrint("✅ RevenueCat Ready!");
+
+    // 3. Initialize SubscriptionService (global listener)
+    await SubscriptionService.instance.init();
+
+    // 4. If user is already logged in, link RevenueCat to Supabase user
+    final existingUser = Supabase.instance.client.auth.currentUser;
+    if (existingUser != null) {
+      await SubscriptionService.instance.loginUser(existingUser.id);
+    }
   } catch (e) {
     debugPrint("❌ RevenueCat Failed: $e");
   }

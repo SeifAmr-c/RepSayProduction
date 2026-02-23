@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart';
+import '../Services/subscription_service.dart';
 import 'landing_page.dart';
 
 /// Screen shown after social sign-up (Apple/Google) to collect
@@ -125,6 +126,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
           },
         ),
       );
+
+      // Link RevenueCat to this user
+      await SubscriptionService.instance.loginUser(user.id);
 
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
