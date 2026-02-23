@@ -28,6 +28,18 @@ class _ProScreenState extends State<ProScreen> {
   void initState() {
     super.initState();
     _fetchOfferings();
+    _checkExistingEntitlement();
+  }
+
+  /// If user already has an active subscription, redirect back immediately
+  Future<void> _checkExistingEntitlement() async {
+    await SubscriptionService.instance.checkEntitlement();
+    if (SubscriptionService.instance.isPro.value && mounted) {
+      Navigator.pop(context, true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("You already have Pro access! 🎉")),
+      );
+    }
   }
 
   /// Fetch offerings from RevenueCat based on user type (user vs coach)
@@ -139,6 +151,11 @@ class _ProScreenState extends State<ProScreen> {
         }
       }
     } finally {
+      // Always check entitlement — handles "already subscribed" scenarios
+      await SubscriptionService.instance.checkEntitlement();
+      if (SubscriptionService.instance.isPro.value && mounted) {
+        Navigator.pop(context, true);
+      }
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -206,6 +223,11 @@ class _ProScreenState extends State<ProScreen> {
         );
       }
     } finally {
+      // Always check entitlement after restore attempt
+      await SubscriptionService.instance.checkEntitlement();
+      if (SubscriptionService.instance.isPro.value && mounted) {
+        Navigator.pop(context, true);
+      }
       if (mounted) setState(() => _isLoading = false);
     }
   }
