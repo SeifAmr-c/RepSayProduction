@@ -31,6 +31,22 @@ class SubscriptionService {
 
   // ── Called every time RevenueCat has new CustomerInfo ──
   void _onCustomerInfoUpdate(CustomerInfo info) {
+    // === DEBUG: Print ALL entitlements RevenueCat knows about ===
+    debugPrint('═══════════════════════════════════════');
+    debugPrint('🔍 RevenueCat CustomerInfo Dump:');
+    debugPrint('   Customer ID: ${info.originalAppUserId}');
+    debugPrint('   Active Subscriptions: ${info.activeSubscriptions}');
+    debugPrint(
+      '   All Entitlement IDs: ${info.entitlements.all.keys.toList()}',
+    );
+    for (final entry in info.entitlements.all.entries) {
+      debugPrint('   Entitlement "${entry.key}":');
+      debugPrint('     isActive: ${entry.value.isActive}');
+      debugPrint('     productId: ${entry.value.productIdentifier}');
+      debugPrint('     isSandbox: ${entry.value.isSandbox}');
+    }
+    debugPrint('═══════════════════════════════════════');
+
     final active = info.entitlements.all["pro"]?.isActive == true;
     isPro.value = active;
     debugPrint('🔔 SubscriptionService: pro=${isPro.value}');
@@ -53,7 +69,9 @@ class SubscriptionService {
   /// Must be called after every successful login / sign-up.
   Future<void> loginUser(String supabaseUserId) async {
     try {
+      debugPrint('🔗 Calling Purchases.logIn($supabaseUserId)...');
       final result = await Purchases.logIn(supabaseUserId);
+      debugPrint('🔗 logIn result - created: ${result.created}');
       _onCustomerInfoUpdate(result.customerInfo);
       debugPrint('🔗 RevenueCat logged in as $supabaseUserId');
     } catch (e) {
