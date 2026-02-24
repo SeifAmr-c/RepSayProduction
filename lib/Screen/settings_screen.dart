@@ -401,7 +401,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Icons.new_releases_outlined,
             "What is new?",
             "Latest updates",
-            onTap: () {},
           ),
 
           _buildSection("About App"),

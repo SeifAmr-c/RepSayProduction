@@ -113,6 +113,7 @@ class _ProScreenState extends State<ProScreen> {
     }
 
     setState(() => _isLoading = true);
+    bool alreadyPopped = false;
     try {
       // Trigger the In-App Purchase sheet via RevenueCat
       CustomerInfo customerInfo = await Purchases.purchasePackage(packageToBuy);
@@ -123,6 +124,7 @@ class _ProScreenState extends State<ProScreen> {
         await SubscriptionService.instance.checkEntitlement();
 
         if (mounted) {
+          alreadyPopped = true;
           Navigator.pop(context, true);
           ScaffoldMessenger.of(
             context,
@@ -153,7 +155,9 @@ class _ProScreenState extends State<ProScreen> {
     } finally {
       // Always check entitlement — handles "already subscribed" scenarios
       await SubscriptionService.instance.checkEntitlement();
-      if (SubscriptionService.instance.isPro.value && mounted) {
+      if (!alreadyPopped &&
+          SubscriptionService.instance.isPro.value &&
+          mounted) {
         Navigator.pop(context, true);
       }
       if (mounted) setState(() => _isLoading = false);
@@ -162,6 +166,7 @@ class _ProScreenState extends State<ProScreen> {
 
   Future<void> _restorePurchases() async {
     setState(() => _isLoading = true);
+    bool alreadyPopped = false;
     try {
       CustomerInfo customerInfo = await Purchases.restorePurchases();
       if (customerInfo.entitlements.all["Pro"]?.isActive == true) {
@@ -169,6 +174,7 @@ class _ProScreenState extends State<ProScreen> {
         await SubscriptionService.instance.checkEntitlement();
 
         if (!mounted) return;
+        alreadyPopped = true;
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -225,7 +231,9 @@ class _ProScreenState extends State<ProScreen> {
     } finally {
       // Always check entitlement after restore attempt
       await SubscriptionService.instance.checkEntitlement();
-      if (SubscriptionService.instance.isPro.value && mounted) {
+      if (!alreadyPopped &&
+          SubscriptionService.instance.isPro.value &&
+          mounted) {
         Navigator.pop(context, true);
       }
       if (mounted) setState(() => _isLoading = false);
