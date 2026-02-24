@@ -47,7 +47,7 @@ class SubscriptionService {
     }
     debugPrint('═══════════════════════════════════════');
 
-    final active = info.entitlements.all["pro"]?.isActive == true;
+    final active = info.entitlements.all["Pro"]?.isActive == true;
     isPro.value = active;
     debugPrint('🔔 SubscriptionService: pro=${isPro.value}');
 
@@ -98,7 +98,7 @@ class SubscriptionService {
       final user = Supabase.instance.client.auth.currentUser;
       if (user == null) return;
 
-      final productId = info.entitlements.all["pro"]?.productIdentifier ?? '';
+      final productId = info.entitlements.all["Pro"]?.productIdentifier ?? '';
 
       if (active) {
         await Supabase.instance.client

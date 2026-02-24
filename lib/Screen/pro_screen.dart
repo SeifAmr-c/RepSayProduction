@@ -118,7 +118,7 @@ class _ProScreenState extends State<ProScreen> {
       CustomerInfo customerInfo = await Purchases.purchasePackage(packageToBuy);
 
       // Check if the purchase was successful
-      if (customerInfo.entitlements.all["pro"]?.isActive == true) {
+      if (customerInfo.entitlements.all["Pro"]?.isActive == true) {
         // Let SubscriptionService handle global state + Supabase sync
         await SubscriptionService.instance.checkEntitlement();
 
@@ -164,7 +164,7 @@ class _ProScreenState extends State<ProScreen> {
     setState(() => _isLoading = true);
     try {
       CustomerInfo customerInfo = await Purchases.restorePurchases();
-      if (customerInfo.entitlements.all["pro"]?.isActive == true) {
+      if (customerInfo.entitlements.all["Pro"]?.isActive == true) {
         // Let SubscriptionService handle global state + Supabase sync
         await SubscriptionService.instance.checkEntitlement();
 
