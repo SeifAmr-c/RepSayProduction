@@ -412,21 +412,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
             "Privacy Policy",
             "",
             onTap: () => _openUrl("https://repsayyy.vercel.app/#privacy"),
-            transparent: true,
           ),
           _buildTile(
             Icons.info_outline,
             "About Us",
             "",
             onTap: () => _openUrl("https://repsayyy.vercel.app/#about"),
-            transparent: true,
           ),
           _buildTile(
             Icons.mail_outline,
             "Contact Us",
             "",
             onTap: () => _openUrl("https://repsayyy.vercel.app/#contact"),
-            transparent: true,
           ),
           _buildInstagramTile(),
 
@@ -477,10 +474,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: Colors.transparent,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
       child: ListTile(
+        splashColor: Colors.transparent,
         onTap: () => _openUrl(
           "https://www.instagram.com/repsayeg?igsh=MTI0ZDFwZGl5MzN2cA%3D%3D&utm_source=qr",
         ),
@@ -519,19 +518,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     String subtitle, {
     VoidCallback? onTap,
     Widget? trailing,
-    bool transparent = false,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: transparent ? Colors.transparent : AppColors.surface,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: transparent
-            ? null
-            : Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
       child: ListTile(
         onTap: onTap,
+        splashColor: Colors.transparent,
         leading: Icon(icon, color: AppColors.volt),
         title: Text(
           title,
@@ -568,11 +565,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: Colors.transparent,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: ListTile(
         onTap: onTap,
+        splashColor: Colors.transparent,
         leading: Icon(icon, color: color),
         title: Text(
           title,
