@@ -120,19 +120,15 @@ class _ProScreenState extends State<ProScreen> {
 
       // Check if the purchase was successful
       if (customerInfo.entitlements.all["Pro"]?.isActive == true) {
-        // Let SubscriptionService handle global state + Supabase sync
         await SubscriptionService.instance.checkEntitlement();
 
         if (mounted) {
           alreadyPopped = true;
-          Navigator.pop(context, true);
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text("Welcome to Pro! 🎉")));
+          await _showCongratsDialog();
+          if (mounted) Navigator.pop(context, true);
         }
       }
     } on PlatformException catch (e) {
-      // Handle User Cancellation or Apple Errors
       var errorCode = PurchasesErrorHelper.getErrorCode(e);
       if (errorCode != PurchasesErrorCode.purchaseCancelledError) {
         if (mounted) {
@@ -153,46 +149,107 @@ class _ProScreenState extends State<ProScreen> {
         }
       }
     } finally {
-      // Always check entitlement — handles "already subscribed" scenarios
       await SubscriptionService.instance.checkEntitlement();
       if (!alreadyPopped &&
           SubscriptionService.instance.isPro.value &&
           mounted) {
-        Navigator.pop(context, true);
+        await _showCongratsDialog();
+        if (mounted) Navigator.pop(context, true);
       }
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  Future<void> _restorePurchases() async {
-    setState(() => _isLoading = true);
-    bool alreadyPopped = false;
-    try {
-      CustomerInfo customerInfo = await Purchases.restorePurchases();
-      if (customerInfo.entitlements.all["Pro"]?.isActive == true) {
-        // Let SubscriptionService handle global state + Supabase sync
-        await SubscriptionService.instance.checkEntitlement();
-
-        if (!mounted) return;
-        alreadyPopped = true;
-        Navigator.pop(context, true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text(
-              "Pro access restored! 🎉",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+  /// Shows a congratulations dialog when the user upgrades to Pro.
+  Future<void> _showCongratsDialog() async {
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.star, color: AppColors.volt, size: 28),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                "Congratulations! 🎉",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            backgroundColor: AppColors.surface,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+          ],
+        ),
+        content: const Text(
+          "You have been upgraded to Pro!\n\nYou now have unlimited access to voice recordings and weight analysis, and also have access to early access features.",
+          style: TextStyle(color: Colors.grey, fontSize: 14, height: 1.5),
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.volt,
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
             ),
-            margin: const EdgeInsets.all(16),
+            child: const Text(
+              "Let's Go!",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
-        );
+        ],
+      ),
+    );
+  }
+
+  Future<void> _restorePurchases() async {
+    setState(() => _isLoading = true);
+
+    // Show loading spinner dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: Card(
+          color: AppColors.surface,
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: AppColors.volt),
+                SizedBox(height: 16),
+                Text(
+                  "Restoring purchases...",
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      CustomerInfo customerInfo = await Purchases.restorePurchases();
+      await SubscriptionService.instance.checkEntitlement();
+
+      // Close spinner
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+
+      if (customerInfo.entitlements.all["Pro"]?.isActive == true ||
+          SubscriptionService.instance.isPro.value) {
+        if (mounted) {
+          await _showCongratsDialog();
+          if (mounted) Navigator.pop(context, true);
+        }
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -212,6 +269,8 @@ class _ProScreenState extends State<ProScreen> {
         }
       }
     } catch (e) {
+      // Close spinner
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -229,13 +288,6 @@ class _ProScreenState extends State<ProScreen> {
         );
       }
     } finally {
-      // Always check entitlement after restore attempt
-      await SubscriptionService.instance.checkEntitlement();
-      if (!alreadyPopped &&
-          SubscriptionService.instance.isPro.value &&
-          mounted) {
-        Navigator.pop(context, true);
-      }
       if (mounted) setState(() => _isLoading = false);
     }
   }

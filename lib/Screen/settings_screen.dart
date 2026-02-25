@@ -295,13 +295,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // --- PRO BANNER START ---
           if (!isPro)
             GestureDetector(
-              onTap: () {
-                Navigator.push(
+              onTap: () async {
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => ProScreen(isCoach: isCoach),
                   ),
                 );
+                if (result == true) {
+                  _fetchProfileData();
+                }
               },
               child: Container(
                 margin: const EdgeInsets.only(bottom: 24),
@@ -409,18 +412,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
             "Privacy Policy",
             "",
             onTap: () => _openUrl("https://repsayyy.vercel.app/#privacy"),
+            transparent: true,
           ),
           _buildTile(
             Icons.info_outline,
             "About Us",
             "",
             onTap: () => _openUrl("https://repsayyy.vercel.app/#about"),
+            transparent: true,
           ),
           _buildTile(
             Icons.mail_outline,
             "Contact Us",
             "",
             onTap: () => _openUrl("https://repsayyy.vercel.app/#contact"),
+            transparent: true,
           ),
           _buildInstagramTile(),
 
@@ -471,9 +477,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
       child: ListTile(
         onTap: () => _openUrl(
@@ -514,13 +519,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     String subtitle, {
     VoidCallback? onTap,
     Widget? trailing,
+    bool transparent = false,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: transparent ? Colors.transparent : AppColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: transparent
+            ? null
+            : Border.all(color: Colors.white.withOpacity(0.05)),
       ),
       child: ListTile(
         onTap: onTap,
@@ -560,9 +568,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: ListTile(
         onTap: onTap,
