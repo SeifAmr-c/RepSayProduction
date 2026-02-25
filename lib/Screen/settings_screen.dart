@@ -478,23 +478,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
-      child: ListTile(
-        splashColor: Colors.transparent,
-        onTap: () => _openUrl(
-          "https://www.instagram.com/repsayeg?igsh=MTI0ZDFwZGl5MzN2cA%3D%3D&utm_source=qr",
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          highlightColor: Colors.transparent,
+          splashColor: Colors.transparent,
         ),
-        leading: const Icon(
-          Icons.photo_camera_front_outlined,
-          color: AppColors.volt,
-        ),
-        title: const Text(
-          "Instagram",
-          style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
-        ),
-        trailing: SizedBox(
-          width: 28,
-          height: 28,
-          child: CustomPaint(painter: _InstagramLogoPainter()),
+        child: ListTile(
+          onTap: () => _openUrl(
+            "https://www.instagram.com/repsayeg?igsh=MTI0ZDFwZGl5MzN2cA%3D%3D&utm_source=qr",
+          ),
+          leading: const Icon(
+            Icons.photo_camera_front_outlined,
+            color: AppColors.volt,
+          ),
+          title: const Text(
+            "Instagram",
+            style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+          ),
+          trailing: SizedBox(
+            width: 28,
+            height: 28,
+            child: CustomPaint(painter: _InstagramLogoPainter()),
+          ),
         ),
       ),
     );
@@ -526,32 +531,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
-      child: ListTile(
-        onTap: onTap,
-        splashColor: Colors.transparent,
-        leading: Icon(icon, color: AppColors.volt),
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          highlightColor: Colors.transparent,
+          splashColor: Colors.transparent,
         ),
-        subtitle: subtitle.isNotEmpty
-            ? Text(
-                subtitle,
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              )
-            : null,
-        trailing:
-            trailing ??
-            (onTap != null
-                ? const Icon(
-                    Icons.arrow_forward_ios,
-                    size: 16,
-                    color: Colors.grey,
-                  )
-                : null),
+        child: ListTile(
+          onTap: onTap,
+          leading: Icon(icon, color: AppColors.volt),
+          title: Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+          subtitle: subtitle.isNotEmpty
+              ? Text(
+                  subtitle,
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                )
+              : null,
+          trailing:
+              trailing ??
+              (onTap != null
+                  ? const Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16,
+                      color: Colors.grey,
+                    )
+                  : null),
+        ),
       ),
     );
   }
@@ -569,13 +579,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withOpacity(0.3)),
       ),
-      child: ListTile(
-        onTap: onTap,
-        splashColor: Colors.transparent,
-        leading: Icon(icon, color: color),
-        title: Text(
-          title,
-          style: TextStyle(fontWeight: FontWeight.w700, color: color),
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          highlightColor: Colors.transparent,
+          splashColor: Colors.transparent,
+        ),
+        child: ListTile(
+          onTap: onTap,
+          leading: Icon(icon, color: color),
+          title: Text(
+            title,
+            style: TextStyle(fontWeight: FontWeight.w700, color: color),
+          ),
         ),
       ),
     );
