@@ -26,7 +26,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   int _clientsAdded = 0;
 
   // Limits
-  final int _freeRecordingLimit = 2; // Free tier limit
+  final int _freeRecordingLimit = 5; // Free tier limit
   final int _freeClientLimit = 3; // Limit for Coaches
 
   @override

@@ -5,7 +5,8 @@ import '../main.dart';
 import 'pro_screen.dart';
 
 class ExerciseAnalysisScreen extends StatefulWidget {
-  const ExerciseAnalysisScreen({super.key});
+  final ValueNotifier<int>? selectedMonthNotifier;
+  const ExerciseAnalysisScreen({super.key, this.selectedMonthNotifier});
 
   @override
   State<ExerciseAnalysisScreen> createState() => _ExerciseAnalysisScreenState();
@@ -21,10 +22,29 @@ class _ExerciseAnalysisScreenState extends State<ExerciseAnalysisScreen> {
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
-    _currentMonthName = _monthName(now.month);
+    final monthIndex =
+        widget.selectedMonthNotifier?.value ?? (DateTime.now().month - 1);
+    _currentMonthName = _monthName(monthIndex + 1);
     _loadData();
     _logAnalytics('exercise_analysis');
+
+    // Listen for month changes from the Home tab
+    widget.selectedMonthNotifier?.addListener(_onMonthChanged);
+  }
+
+  void _onMonthChanged() {
+    final monthIndex = widget.selectedMonthNotifier!.value;
+    setState(() {
+      _currentMonthName = _monthName(monthIndex + 1);
+      _loading = true;
+    });
+    _loadData();
+  }
+
+  @override
+  void dispose() {
+    widget.selectedMonthNotifier?.removeListener(_onMonthChanged);
+    super.dispose();
   }
 
   /// Log an analytics event
@@ -77,9 +97,11 @@ class _ExerciseAnalysisScreenState extends State<ExerciseAnalysisScreen> {
     }
 
     try {
-      final now = DateTime.now();
-      final start = DateTime(now.year, now.month, 1);
-      final end = DateTime(now.year, now.month + 1, 1);
+      final monthIndex =
+          widget.selectedMonthNotifier?.value ?? (DateTime.now().month - 1);
+      final year = DateTime.now().year;
+      final start = DateTime(year, monthIndex + 1, 1);
+      final end = DateTime(year, monthIndex + 2, 1);
 
       // Fetch all workouts for this month with their sets
       final res = await _supabase

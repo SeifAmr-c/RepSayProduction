@@ -14,7 +14,8 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final ValueNotifier<int>? selectedMonthNotifier;
+  const HomeScreen({super.key, this.selectedMonthNotifier});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -43,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // Plan Logic
   String _userPlan = 'free';
   int _monthlyCount = 0;
-  final int _freeLimit = 2; // Free tier limit
+  final int _freeLimit = 5; // Free tier limit
   int _failedAttempts = 0; // Track failed voice recording attempts
 
   // Rate Limiting
@@ -1425,6 +1426,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           onChanged: (v) {
             setState(() => _selectedMonthIndex = v!);
+            widget.selectedMonthNotifier?.value = _selectedMonthIndex;
             _fetchWorkouts();
           },
         ),

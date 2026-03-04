@@ -22,16 +22,32 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   int _currentIndex = 0; // Start at Home/Main
 
+  /// Shared month index (0 = January, 11 = December) so that when the
+  /// user changes the month on the Home tab the Analysis tab picks it up.
+  final ValueNotifier<int> _selectedMonthNotifier = ValueNotifier<int>(
+    DateTime.now().month - 1,
+  );
+
   void _switchTab(int index) {
     setState(() => _currentIndex = index);
   }
 
-  final List<Widget> _screens = [
-    const HomeScreen(), // Index 0: Record
-    const CalorieCalculatorScreen(), // Index 1: Calories
-    const ExerciseAnalysisScreen(), // Index 2: Analysis
-    const SettingsScreen(), // Index 3: Settings
-  ];
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      HomeScreen(
+        selectedMonthNotifier: _selectedMonthNotifier,
+      ), // Index 0: Record
+      const CalorieCalculatorScreen(), // Index 1: Calories
+      ExerciseAnalysisScreen(
+        selectedMonthNotifier: _selectedMonthNotifier,
+      ), // Index 2: Analysis
+      const SettingsScreen(), // Index 3: Settings
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {

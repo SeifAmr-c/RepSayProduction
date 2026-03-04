@@ -790,7 +790,7 @@ class _ClientDetailScreenState extends State<ClientDetailScreen> {
   // Plan & Recording Limit
   String _userPlan = 'free';
   int _monthlyRecordingCount = 0;
-  final int _freeRecordingLimit = 2;
+  final int _freeRecordingLimit = 5;
   int _failedAttempts = 0; // Track failed voice recording attempts
 
   // Rate Limiting
