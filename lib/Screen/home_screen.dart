@@ -77,7 +77,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedMonthIndex = DateTime.now().month - 1;
+    _selectedMonthIndex =
+        widget.selectedMonthNotifier?.value ?? (DateTime.now().month - 1);
     _loadAllData();
     _setupProGiftListener();
     ReviewHelper.checkAndRequestReview();
